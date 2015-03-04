@@ -10,4 +10,5 @@ Usage :
    as is, even if you used prepared statements
 -- query with stripped where clauses : some transformations are applied on origin query string in order
    to remove hardcoded values (in order to facilitate identification of same queries with different criteria values)
--- query pattern occurences : Number of time `query with stripped where clauses` occurences are found in the timelapse
+-- query pattern occurences : Number of time `query with stripped where clauses` occurences are found
+   First number is the number of occurences

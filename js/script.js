@@ -119,15 +119,21 @@ function processLog (logtext)
 
     var dataGroupedByStrippedQueries = _.groupBy(logdata, 'query_with_stripped_where_clauses');
     var hideShowButtons = '<a class="showBtn" onclick="showQuery(this);">Show</a><a class="hideBtn" onclick="hideQuery(this);" style="display:none">Hide</a>';
-    logdata = _.map(logdata, function(data) {
-        return _.extend({}, data, {
-            query_string: hideShowButtons+'<span style="display:none"><br/>'+data.query_string+'</span>',
-            query_with_stripped_where_clauses: hideShowButtons+'<span style="display:none"><br/>'+data.query_with_stripped_where_clauses+'</span>',
-            query_pattern_occurences: dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length
-        });
+    _.each(logdata, function(data) {
+        data.query_string = hideShowButtons+'<span style="display:none"><br/>'+data.query_string+'</span>';
+        data.displayed_query_with_stripped_where_clauses = hideShowButtons+'<span style="display:none"><br/>'+data.query_with_stripped_where_clauses+'</span>';
+        data.query_pattern_global_occurences = dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length;
     });
+    calculateQueryPatternOccurencesTextOn(logdata);
 
     return logdata.length;
+}
+
+function calculateQueryPatternOccurencesTextOn(dataItems) {
+    var dataGroupedByStrippedQueries = _.groupBy(dataItems, 'query_with_stripped_where_clauses');
+    _.each(dataItems, function(data) {
+        data.query_pattern_filtered_occurences = dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length;
+    });
 }
 
 function showQuery(node) {
@@ -300,6 +306,9 @@ function filterData(data, criteria) {
             }
             return true;
         }):data;
+
+    calculateQueryPatternOccurencesTextOn(filteredData);
+
     return filteredData;
 }
 
