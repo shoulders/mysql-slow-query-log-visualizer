@@ -141,12 +141,48 @@ function createList ()
 }
 
 function createChart() {
-    $('table#time_list tfoot').remove();
-    $('table#time_list').visualize({
-        type: 'line', 
-        width: (window.innerWidth - 200) + 'px', 
-        height: '400px'
-    }).appendTo('#chart').trigger('visualizeRefresh');
+
+    var firstDate = _(logdata).min('dateObj').dateObj;
+    var lastDate = _(logdata).max('dateObj').dateObj;
+
+    var hourRanges = _(_.range(Math.floor((firstDate.getTime())/(3600*1000)), (lastDate.getTime())/(3600*1000))).map(function(startingHour) {
+        var startingDate = new Date(startingHour*3600*1000), endingDate = new Date((startingHour+1)*3600*1000);
+        var label = startingDate.getDate()+"/"+startingDate.getMonth()+" "+startingDate.getHours()+"h";
+        return {
+            startingDate: startingDate,
+            endingDate: endingDate,
+            label: label,
+            matchesWithLowBound: function(date) { return startingDate.getTime()<=date.getTime(); },
+            matchesWithHighBound: function(date) { return endingDate.getTime()>date.getTime(); },
+            matchesWith: function(date) { return this.matchesWithLowBound(date) && this.matchesWithHighBound(date); }
+        };
+    }).value();
+
+    window.extendedData = _(logdata).map(function(data){
+        return _.extend({}, data, {
+            hourIndex: _.findIndex(hourRanges, function(range){ return range.matchesWith(data.dateObj); })
+        });
+    }).groupBy('hourIndex').value();
+
+    var countsPerHourIndex = _(extendedData).mapValues('length').value();
+
+    var datasets = [{
+        label: "Nb requêtes",
+        fillColor: "rgba(220,220,220,0.2)",
+        strokeColor: "rgba(220,220,220,1)",
+        pointColor: "rgba(220,220,220,1)",
+        pointStrokeColor: "#fff",
+        pointHighlightFill: "#fff",
+        pointHighlightStroke: "rgba(220,220,220,1)",
+        data: _(hourRanges).map(function(hourRange, hourIndex){ return countsPerHourIndex[hourIndex] || 0; }).value()
+    }];
+
+    var $chartCanvas = $("#chart");
+    var ctx = $chartCanvas.get(0).getContext("2d");
+    var myLineChart = new Chart(ctx).Line({
+        labels: _.pluck(hourRanges, "label"),
+        datasets: datasets
+    });
     document.getElementById('time_list').style.display = 'none';
 }
 
@@ -211,11 +247,7 @@ function handleFileSelect(evt) {
             span.innerHTML = "Imported " + len + " entries.";
             document.getElementById('load_result').insertBefore(span, null);
             createList();
-            try {
-                createChart();
-            } catch (error) {
-                console.log(error);
-            }
+            createChart();
         }
     };
 

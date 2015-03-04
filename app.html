@@ -53,7 +53,8 @@ OTHER DEALINGS IN THE SOFTWARE.
                 loadScripts: [
                     {src: 'js/excanvas.js', iecondition: 'all'},
                     'https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js',
-                    'js/visualize.jQuery.js'
+                     'bower_components/chartjs/Chart.js',
+                     'bower_components/lodash/lodash.js'
                 ],
                 loadStyles: [
                     'css/visualize.css',
@@ -74,8 +75,8 @@ OTHER DEALINGS IN THE SOFTWARE.
         <output id="drop_result"></output>
         <output id="load_result"></output>
 
-        <div id="chart_container">
-            <div id="chart"></div>
+        <div id="chart_container" width="100%">
+            <canvas id="chart" width="1280px" height="600"></canvas>
         </div>
 
         <br /><br />
