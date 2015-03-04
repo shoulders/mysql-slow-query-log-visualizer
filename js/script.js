@@ -196,7 +196,7 @@ function createChart() {
 
     var hourRanges = _(_.range(Math.floor((firstDate.getTime())/(3600*1000)), (lastDate.getTime())/(3600*1000))).map(function(startingHour) {
         var startingDate = new Date(startingHour*3600*1000), endingDate = new Date((startingHour+1)*3600*1000);
-        var label = startingDate.getDate()+"/"+startingDate.getMonth()+" "+startingDate.getHours()+"h";
+        var label = _.padLeft(startingDate.getDate(), 2, "0")+"/"+ _.padLeft(startingDate.getMonth()+1, 2, "0")+" "+ _.padLeft(startingDate.getHours(), 2, "0")+"h";
         return {
             startingDate: startingDate,
             endingDate: endingDate,
