@@ -183,6 +183,21 @@ function createChart() {
         labels: _.pluck(hourRanges, "label"),
         datasets: datasets
     });
+    // Hack to be able to retrieve index from x coordinate
+    var datasetIndexFromPointResolvers = _.map(myLineChart.datasets, function(dataset) {
+        return {
+            indexFromPoint: _(dataset.points).pluck('x').invert().value()
+        };
+    });
+
+    $chartCanvas.click(function(evt){
+        var activePoints = myLineChart.getPointsAtEvent(evt);
+        var medianPoint = activePoints[Math.ceil(activePoints.length/2)];
+        var targetHourRange = hourRanges[datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
+
+        list.clear();
+        list.add(filterData(logdata, targetHourRange));
+    });
     document.getElementById('time_list').style.display = 'none';
 }
 
@@ -219,6 +234,30 @@ function updateTimeChart () {
         list2.items[d].values(timedata[d]);
     }
     $('.visualize').trigger('visualizeRefresh');
+}
+
+function filterData(data, criteria) {
+    window.filterEven = ((window.filterEven || 0)+1)%2;
+    window.filterCriteria = window.filterCriteria || { start: null, end: null };
+    if(window.filterEven === 1){
+        window.filterCriteria.start = criteria;
+        $("#filterStart").text(window.filterCriteria.start.startingDate.toString());
+    } else {
+        window.filterCriteria.end = criteria;
+        $("#filterEnd").text(window.filterCriteria.end.endingDate.toString());
+    }
+
+    var filteredData = criteria?
+        _.filter(data, function(item){
+            if(window.filterCriteria.start && !window.filterCriteria.start.matchesWithLowBound(item.dateObj)) {
+                return false;
+            }
+            if(window.filterCriteria.end && !window.filterCriteria.end.matchesWithHighBound(item.dateObj)) {
+                return false;
+            }
+            return true;
+        }):data;
+    return filteredData;
 }
 
 function handleFileSelect(evt) {
