@@ -118,15 +118,28 @@ function processLog (logtext)
     }
 
     var dataGroupedByStrippedQueries = _.groupBy(logdata, 'query_with_stripped_where_clauses');
+    var hideShowButtons = '<a class="showBtn" onclick="showQuery(this);">Show</a><a class="hideBtn" onclick="hideQuery(this);" style="display:none">Hide</a>';
     logdata = _.map(logdata, function(data) {
         return _.extend({}, data, {
-            query_string: '<span style="display:none"><br/>'+data.query_string+'</span>',
-            query_with_stripped_where_clauses: '<span style="display:none"><br/>'+data.query_with_stripped_where_clauses+'</span>',
+            query_string: hideShowButtons+'<span style="display:none"><br/>'+data.query_string+'</span>',
+            query_with_stripped_where_clauses: hideShowButtons+'<span style="display:none"><br/>'+data.query_with_stripped_where_clauses+'</span>',
             query_pattern_occurences: dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length
         });
     });
 
     return logdata.length;
+}
+
+function showQuery(node) {
+    $(node).siblings('span').show();
+    $(node).siblings('.hideBtn').show();
+    $(node).hide();
+}
+
+function hideQuery(node) {
+    $(node).siblings('span').hide();
+    $(node).hide();
+    $(node).siblings('.showBtn').show();
 }
 
 function stripWhereClauses(query) {
