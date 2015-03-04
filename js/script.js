@@ -106,6 +106,7 @@ function processLog (logtext)
         log_lines.shift();
         
         logdata[i].query_string = log_lines.join("\n").split("# Time: ")[0]; // query
+        logdata[i].query_with_stripped_where_clauses = stripWhereClauses(logdata[i].query_string);
         
         // time stats
         
@@ -114,10 +115,39 @@ function processLog (logtext)
         }
         
         timedata[dayOfWeek][hours]++;
-        
     }
-    
+
+    var dataGroupedByStrippedQueries = _.groupBy(logdata, 'query_with_stripped_where_clauses');
+    logdata = _.map(logdata, function(data) {
+        return _.extend({}, data, {
+            query_string: '<span style="display:none"><br/>'+data.query_string+'</span>',
+            query_with_stripped_where_clauses: '<span style="display:none"><br/>'+data.query_with_stripped_where_clauses+'</span>',
+            query_pattern_occurences: dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length
+        });
+    });
+
     return logdata.length;
+}
+
+function stripWhereClauses(query) {
+    var indexOfWhere = query.toUpperCase().lastIndexOf("WHERE");
+    var initialRadical = query.substr(0, indexOfWhere);
+
+    var chunkToReplace = query.substr(indexOfWhere);
+    // First, stripping slashes / carriage returns
+    chunkToReplace = chunkToReplace.replace(/[\r\n\s]+/gim, " ");
+
+    // Replacing operators
+    chunkToReplace = chunkToReplace.replace(/is null/gim, "IS ?");
+    chunkToReplace = chunkToReplace.replace(/is not null/gim, "IS ?");
+    chunkToReplace = chunkToReplace.replace(/in\s?\([^)]*\)+/gim, "IN ?");
+    chunkToReplace = chunkToReplace.replace(/([^><])=\s?(?:'[^']*'|"[^"]*"|[^\s]+)/gim, '$1= ?');
+    chunkToReplace = chunkToReplace.replace(/>(=)?\s?(?:'[^']*'|"[^"]*"|[^\s]+)/gim, ">$1 ?");
+    chunkToReplace = chunkToReplace.replace(/<(=)?\s?(?:'[^']*'|"[^"]*"|[^\s]+)/gim, "<$1 ?");
+    chunkToReplace = chunkToReplace.replace(/between\s(?:'[^']*'|"[^"]*"|[^\s]+)\sand\s(?:'[^']*'|"[^"]*"|[^\s]+)/gim, "BETWEEN ? AND ?");
+    chunkToReplace = chunkToReplace.replace(/find_in_set\(\s*(?:'[^']*'|"[^"]*"|[^\s]+)/gim, "FIND_IN_SET(?");
+
+    return initialRadical + chunkToReplace;
 }
 
 function createList ()
