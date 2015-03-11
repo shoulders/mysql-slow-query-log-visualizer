@@ -187,7 +187,12 @@ function createList ()
 }
 
 var TIME_SCALES = {
-    hourly: {
+    minutely: {
+        numberOfMillis: 60 * 1000,
+        format: function (date) {
+            return _.padLeft(date.getDate(), 2, "0") + "/" + _.padLeft(date.getMonth() + 1, 2, "0") + " " + _.padLeft(date.getHours(), 2, "0") + ":"+ _.padLeft(date.getMinutes(), 2, "0");
+        }
+    }, hourly: {
         numberOfMillis: 3600*1000,
         format: function(date){ return _.padLeft(date.getDate(), 2, "0")+"/"+ _.padLeft(date.getMonth()+1, 2, "0")+" "+ _.padLeft(date.getHours(), 2, "0")+"h"; }
 
