@@ -206,10 +206,10 @@ function createChartFromLogdata(){
     var firstDate = _(logdata).min('dateObj').dateObj;
     var lastDate = _(logdata).max('dateObj').dateObj;
 
-    createChart(firstDate, lastDate, $("#global_time_scale"), $("#globalChart"), 'globalGroupedTimescaleData', 'displayedGlobalChart');
+    createChart(logdata, firstDate, lastDate, $("#global_time_scale"), $("#globalChart"), 'globalGroupedTimescaleData', 'displayedGlobalChart');
 };
 
-function createChart(firstDate, lastDate, $timeScaleSelector, $targetChartCanvas, globalDebugGroupedDataName, globalChartVariableName) {
+function createChart(data, firstDate, lastDate, $timeScaleSelector, $targetChartCanvas, debugGroupedDataGlobalVariableName, chartGlobalVariableName) {
     $timeScaleSelector.off('change');
     $timeScaleSelector.on('change', function(){
         createChart(firstDate, lastDate, $timeScaleSelector);
@@ -229,13 +229,13 @@ function createChart(firstDate, lastDate, $timeScaleSelector, $targetChartCanvas
         };
     }).value();
 
-    window[globalDebugGroupedDataName] = _(logdata).map(function(data){
+    window[debugGroupedDataGlobalVariableName] = _(data).map(function(data){
         return _.extend({}, data, {
             timeScaleIndex: _.findIndex(timeScaleRanges, function(range){ return range.matchesWith(data.dateObj); })
         });
     }).groupBy('timeScaleIndex').value();
 
-    var countsPerTimeScaleIndex = _(window[globalDebugGroupedDataName]).mapValues('length').value();
+    var countsPerTimeScaleIndex = _(window[debugGroupedDataGlobalVariableName]).mapValues('length').value();
 
     var datasets = [{
         label: "Nb requêtes",
@@ -250,24 +250,24 @@ function createChart(firstDate, lastDate, $timeScaleSelector, $targetChartCanvas
 
     var $chartCanvas = $targetChartCanvas;
     var ctx = $chartCanvas.get(0).getContext("2d");
-    if(window[globalChartVariableName]){
-        window[globalChartVariableName].destroy();
+    if(window[chartGlobalVariableName]){
+        window[chartGlobalVariableName].destroy();
     }
-    window[globalChartVariableName] = new Chart(ctx).Line({
+    window[chartGlobalVariableName] = new Chart(ctx).Line({
         labels: _.pluck(timeScaleRanges, "label"),
         datasets: datasets
     }, {
         pointHitDetectionRadius: 1
     });
     // Hack to be able to retrieve index from x coordinate
-    var datasetIndexFromPointResolvers = _.map(window[globalChartVariableName].datasets, function(dataset) {
+    var datasetIndexFromPointResolvers = _.map(window[chartGlobalVariableName].datasets, function(dataset) {
         return {
             indexFromPoint: _(dataset.points).pluck('x').invert().value()
         };
     });
 
     $chartCanvas.click(function(evt){
-        var activePoints = window[globalChartVariableName].getPointsAtEvent(evt);
+        var activePoints = window[chartGlobalVariableName].getPointsAtEvent(evt);
         var medianPoint = activePoints[Math.floor(activePoints.length/2)];
         var targetTimeScaleRange = timeScaleRanges[datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
 
@@ -284,7 +284,17 @@ function createChart(firstDate, lastDate, $timeScaleSelector, $targetChartCanvas
         }
 
         list.clear();
-        list.add(filterData(logdata, window.filteringCriteria));
+        var filteredData = filterData(logdata, window.filteringCriteria);
+        list.add(filteredData);
+
+        createChart(
+            filteredData,
+            window.filteringCriteria.start?window.filteringCriteria.start.startingDate:firstDate,
+            window.filteringCriteria.end?window.filteringCriteria.end.endingDate:lastDate,
+            $("#working_time_scale"), $("#workingChart"),
+            'workingGroupedTimescaleData', 'displayedWorkingChart');
+
+        document.getElementById('working_chart_container').style.display = 'block';
     });
 
     document.getElementById('global_chart_container').style.display = 'block';
@@ -323,7 +333,7 @@ function updateTimeChart () {
 }
 
 function filterData(data, criteria) {
-    var filteredData = (window.filteringCriteria.start || window.filteringCriteria.end)?
+    var filteredData = (criteria.start || criteria.end)?
         _.filter(data, function(item){
             if(criteria.start && !criteria.start.matchesWithLowBound(item.dateObj)) {
                 return false;

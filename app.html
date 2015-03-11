@@ -89,6 +89,18 @@ OTHER DEALINGS IN THE SOFTWARE.
 
         <br /><br />
 
+        <div id="working_chart_container" class="chart_container" width="100%" style="display: none">
+            <h2>WORKING CHART (click twice on graph to define new working data)</h2>
+            Time scale : <select id="working_time_scale">
+                <option value="hourly">Hourly</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+            </select><br/>
+            <canvas id="workingChart" class="chart" width="1280px" height="600"></canvas>
+        </div>
+
+        <br /><br />
+
         <div id="query_results" style="display:none">
             Chart filtering : start=<span id="filterStart"></span>, end=<span id="filterEnd"></span>
             <table id="log_list">
