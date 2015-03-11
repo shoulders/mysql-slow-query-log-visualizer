@@ -36,45 +36,41 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-function processLog (logtext)
-{
+function processLog (logtextChunk, isLatestChunk) {
     var log_entry;
     var log_lines;
     var date_string;
     var entry_stats;
     
-    logdata = logtext.split("# User@Host: ");
-    logdata.shift();
+    var logdataAsText = logtextChunk.split("# User@Host: ");
+    logdataAsText.shift();
 
-    for (var i = 0; i < logdata.length; i++) {
+    var logdata = [];
+    for (var i = 0; i < logdataAsText.length-(isLatestChunk?0:1); i++) {
         
         // load string
         
-        log_entry = logdata[i];
-        logdata[i] = {};
-        
+        log_entry = logdataAsText[i];
         log_lines = log_entry.split("\n");
-       
-        // get host
-        
-        logdata[i].db_name = log_lines[0].split("[")[1].split("]")[0];
-       
-        // get stats
-        
+
         entry_stats = log_lines[1].split(" ");
-        logdata[i].query_time = entry_stats[2]; // query time
-        logdata[i].lock_time = entry_stats[5]; // lock time
-        logdata[i].rows_sent = entry_stats[7]; // rows sent
-        logdata[i].rows_examined = entry_stats[10]; // row examined
-        
+
+        logdata[i] = {
+            // get host
+            db_name: log_lines[0].split("[")[1].split("]")[0],
+            // get stats
+            query_time: entry_stats[2], // query time
+            lock_time: entry_stats[5], // lock time
+            rows_sent: entry_stats[7], // rows sent
+            rows_examined: entry_stats[10] // row examined
+        };
+
         if (log_lines[2].substr(0,3) == "use") {
             log_lines.shift(); 
         }
-        
         date_string = log_lines[2].split("SET timestamp=")[1].split(";")[0];
         
         // parse date
-        
         d = new Date(date_string * 1000);
         
         var year = d.getFullYear();
@@ -126,6 +122,10 @@ function processLog (logtext)
     });
     calculateQueryPatternOccurencesTextOn(logdata);
 
+    return {
+        logdata: logdata,
+        latestEntryText: isLatestChunk?null:logdataAsText[logdataAsText.length-1]
+    };
     return logdata.length;
 }
 
@@ -333,10 +333,13 @@ function handleFileSelect(evt) {
     // Closure to capture the file information.
     reader.onloadend = function(e) {
         if (e.target.readyState == FileReader.DONE) {
-            var len = processLog(e.target.result);
+            var result = processLog(e.target.result, true);
             var span = document.createElement('span');
-            span.innerHTML = "Imported " + len + " entries.";
+            span.innerHTML = "Imported " + result.logdata.length + " entries.";
             document.getElementById('load_result').insertBefore(span, null);
+
+            logdata = result.logdata;
+
             createList();
             createChart();
         }
