@@ -271,8 +271,20 @@ function createChart(firstDate, lastDate, $timeScaleSelector, $targetChartCanvas
         var medianPoint = activePoints[Math.floor(activePoints.length/2)];
         var targetTimeScaleRange = timeScaleRanges[datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
 
+        // Ensuring filtering criteria is defined
+        window.filteringCriteria = window.filteringCriteria || { even: 0, start: null, end: null };
+
+        window.filteringCriteria.even = (window.filteringCriteria.even+1)%2;
+        if(window.filteringCriteria.even === 1){
+            window.filteringCriteria.start = targetTimeScaleRange;
+            $("#filterStart").text(window.filteringCriteria.start.startingDate.toString());
+        } else {
+            window.filteringCriteria.end = targetTimeScaleRange;
+            $("#filterEnd").text(window.filteringCriteria.end.endingDate.toString());
+        }
+
         list.clear();
-        list.add(filterData(logdata, targetTimeScaleRange));
+        list.add(filterData(logdata, window.filteringCriteria));
     });
 
     document.getElementById('global_chart_container').style.display = 'block';
@@ -311,22 +323,12 @@ function updateTimeChart () {
 }
 
 function filterData(data, criteria) {
-    window.filterEven = ((window.filterEven || 0)+1)%2;
-    window.filterCriteria = window.filterCriteria || { start: null, end: null };
-    if(window.filterEven === 1){
-        window.filterCriteria.start = criteria;
-        $("#filterStart").text(window.filterCriteria.start.startingDate.toString());
-    } else {
-        window.filterCriteria.end = criteria;
-        $("#filterEnd").text(window.filterCriteria.end.endingDate.toString());
-    }
-
-    var filteredData = criteria?
+    var filteredData = (window.filteringCriteria.start || window.filteringCriteria.end)?
         _.filter(data, function(item){
-            if(window.filterCriteria.start && !window.filterCriteria.start.matchesWithLowBound(item.dateObj)) {
+            if(criteria.start && !criteria.start.matchesWithLowBound(item.dateObj)) {
                 return false;
             }
-            if(window.filterCriteria.end && !window.filterCriteria.end.matchesWithHighBound(item.dateObj)) {
+            if(criteria.end && !criteria.end.matchesWithHighBound(item.dateObj)) {
                 return false;
             }
             return true;
