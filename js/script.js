@@ -186,14 +186,31 @@ function createList ()
     $("#log_list_search").keyup(updateTimeChart);
 }
 
+var TIME_SCALES = {
+    hourly: {
+        numberOfMillis: 3600*1000,
+        format: function(date){ return _.padLeft(date.getDate(), 2, "0")+"/"+ _.padLeft(date.getMonth()+1, 2, "0")+" "+ _.padLeft(date.getHours(), 2, "0")+"h"; }
+
+    }, daily: {
+        numberOfMillis: 3600*1000*24,
+        format: function(date){ return _.padLeft(date.getDate(), 2, "0")+"/"+ _.padLeft(date.getMonth()+1, 2, "0"); }
+
+    }, weekly: {
+        numberOfMillis: 3600*1000*24*7,
+        format: function(date){ return _.padLeft(date.getDate(), 2, "0")+"/"+ _.padLeft(date.getMonth()+1, 2, "0"); }
+
+    }
+};
+
 function createChart() {
 
     var firstDate = _(logdata).min('dateObj').dateObj;
     var lastDate = _(logdata).max('dateObj').dateObj;
 
-    var hourRanges = _(_.range(Math.floor((firstDate.getTime())/(3600*1000)), (lastDate.getTime())/(3600*1000))).map(function(startingHour) {
-        var startingDate = new Date(startingHour*3600*1000), endingDate = new Date((startingHour+1)*3600*1000);
-        var label = _.padLeft(startingDate.getDate(), 2, "0")+"/"+ _.padLeft(startingDate.getMonth()+1, 2, "0")+" "+ _.padLeft(startingDate.getHours(), 2, "0")+"h";
+    var currentTimeScale = TIME_SCALES[$("#time_scale").val()];
+    var timeScaleRanges = _(_.range(Math.floor((firstDate.getTime())/(currentTimeScale.numberOfMillis)), (lastDate.getTime())/(currentTimeScale.numberOfMillis))).map(function(index) {
+        var startingDate = new Date(index*currentTimeScale.numberOfMillis), endingDate = new Date((index+1)*currentTimeScale.numberOfMillis);
+        var label = currentTimeScale.format(startingDate);
         return {
             startingDate: startingDate,
             endingDate: endingDate,
@@ -206,11 +223,11 @@ function createChart() {
 
     window.extendedData = _(logdata).map(function(data){
         return _.extend({}, data, {
-            hourIndex: _.findIndex(hourRanges, function(range){ return range.matchesWith(data.dateObj); })
+            timeScaleIndex: _.findIndex(timeScaleRanges, function(range){ return range.matchesWith(data.dateObj); })
         });
-    }).groupBy('hourIndex').value();
+    }).groupBy('timeScaleIndex').value();
 
-    var countsPerHourIndex = _(extendedData).mapValues('length').value();
+    var countsPerTimeScaleIndex = _(extendedData).mapValues('length').value();
 
     var datasets = [{
         label: "Nb requêtes",
@@ -220,29 +237,34 @@ function createChart() {
         pointStrokeColor: "#fff",
         pointHighlightFill: "#fff",
         pointHighlightStroke: "rgba(220,220,220,1)",
-        data: _(hourRanges).map(function(hourRange, hourIndex){ return countsPerHourIndex[hourIndex] || 0; }).value()
+        data: _(timeScaleRanges).map(function(timeScaleRange, timeScaleIndex){ return countsPerTimeScaleIndex[timeScaleIndex] || 0; }).value()
     }];
 
     var $chartCanvas = $("#chart");
     var ctx = $chartCanvas.get(0).getContext("2d");
-    var myLineChart = new Chart(ctx).Line({
-        labels: _.pluck(hourRanges, "label"),
+    if(window.globalChart){
+        window.globalChart.destroy();
+    }
+    window.globalChart = new Chart(ctx).Line({
+        labels: _.pluck(timeScaleRanges, "label"),
         datasets: datasets
+    }, {
+        pointHitDetectionRadius: 1
     });
     // Hack to be able to retrieve index from x coordinate
-    var datasetIndexFromPointResolvers = _.map(myLineChart.datasets, function(dataset) {
+    var datasetIndexFromPointResolvers = _.map(window.globalChart.datasets, function(dataset) {
         return {
             indexFromPoint: _(dataset.points).pluck('x').invert().value()
         };
     });
 
     $chartCanvas.click(function(evt){
-        var activePoints = myLineChart.getPointsAtEvent(evt);
+        var activePoints = window.globalChart.getPointsAtEvent(evt);
         var medianPoint = activePoints[Math.ceil(activePoints.length/2)];
-        var targetHourRange = hourRanges[datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
+        var targetTimeScaleRange = timeScaleRanges[datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
 
         list.clear();
-        list.add(filterData(logdata, targetHourRange));
+        list.add(filterData(logdata, targetTimeScaleRange));
     });
 
     document.getElementById('chart_container').style.display = 'block';
@@ -342,6 +364,10 @@ function handleFileSelect(evt) {
 
             createList();
             createChart();
+
+            $("#time_scale").change(function(){
+                createChart();
+            });
         } else {
             loadProgress.innerHTML = "Progress : "+Math.round(currentStartingBytesOffset*100/f.size)+"%";
 
