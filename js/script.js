@@ -181,11 +181,6 @@ function createList ()
     document.getElementById('drop_zone').style.display = 'none';
     document.getElementById('log_list').style.display = 'table';
 
-    var options2 = {
-        item: 'time_list_item'
-    }
-    list2 = new List('time_list', options2, timedata);
-    
     $("#log_list_search").keyup(updateTimeChart);
 }
 
@@ -279,9 +274,6 @@ function updateTimeChart () {
         }
     }
     $("#search_count").text(count + " results ");
-    for (d = 0; d < 7; d++) {
-        list2.items[d].values(timedata[d]);
-    }
     $('.visualize').trigger('visualizeRefresh');
 }
 
@@ -412,4 +404,3 @@ for (var i = 0; i < 7; i++) {
     timedata[i].dayName = dayNames[i];
 }
 var list;
-var list2;
