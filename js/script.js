@@ -260,7 +260,7 @@ function createChart() {
 
     $chartCanvas.click(function(evt){
         var activePoints = window.displayedGlobalChart.getPointsAtEvent(evt);
-        var medianPoint = activePoints[Math.ceil(activePoints.length/2)];
+        var medianPoint = activePoints[Math.floor(activePoints.length/2)];
         var targetTimeScaleRange = timeScaleRanges[datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
 
         list.clear();
