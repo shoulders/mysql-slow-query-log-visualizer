@@ -77,55 +77,58 @@ OTHER DEALINGS IN THE SOFTWARE.
         <output id="load_progress"></output>
         <output id="load_result"></output>
 
-        <div id="chart_container" width="100%">
+        <div id="chart_container" width="100%" style="display: none">
+            <h2>GLOBAL DATA (click twice on graph to define working data)</h2>
             <canvas id="chart" width="1280px" height="600"></canvas>
         </div>
 
         <br /><br />
 
-        Chart filtering : start=<span id="filterStart"></span>, end=<span id="filterEnd"></span>
-        <table id="log_list">
-            <thead class="header">
-                <tr id="search">
-                    <th colspan="10">
-                        <span class="list_search">
-                            <span id="search_count"></span>
-                            <label for="log_list_search">Filter:</label> 
-                            <input id="log_list_search" class="search" />
-                        </span>
-                    </th>
-                </tr>
-                <tr>
-                    <th scope="col" class="sort" data-sort="date">date</th>
-                    <th scope="col" class="sort" data-sort="query_time">query time</th>
-                    <th scope="col" class="sort" data-sort="lock_time">lock time</th>
-                    <th scope="col" class="sort" data-sort="rows_sent">rows sent</th>
-                    <th scope="col" class="sort" data-sort="rows_examined">rows examined</th>
-                    <th scope="col" class="sort" data-sort="db_name">db name</th>
-                    <th scope="col" class="sort" data-sort="query_pattern_filtered_occurences">query pattern filtered occurences</th>
-                    <th scope="col" class="sort" data-sort="query_pattern_global_occurences">query pattern global occurences</th>
-                    <th scope="col" class="sort" data-sort="query_string">query string</th>
-                    <th scope="col" class="sort" data-sort="displayed_query_with_stripped_where_clauses">query with stripped where clauses</th>
-                </tr>
-            </thead>
+        <div id="query_results" style="display:none">
+            Chart filtering : start=<span id="filterStart"></span>, end=<span id="filterEnd"></span>
+            <table id="log_list">
+                <thead class="header">
+                    <tr id="search">
+                        <th colspan="10">
+                            <span class="list_search">
+                                <span id="search_count"></span>
+                                <label for="log_list_search">Filter:</label>
+                                <input id="log_list_search" class="search" />
+                            </span>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th scope="col" class="sort" data-sort="date">date</th>
+                        <th scope="col" class="sort" data-sort="query_time">query time</th>
+                        <th scope="col" class="sort" data-sort="lock_time">lock time</th>
+                        <th scope="col" class="sort" data-sort="rows_sent">rows sent</th>
+                        <th scope="col" class="sort" data-sort="rows_examined">rows examined</th>
+                        <th scope="col" class="sort" data-sort="db_name">db name</th>
+                        <th scope="col" class="sort" data-sort="query_pattern_filtered_occurences">query pattern filtered occurences</th>
+                        <th scope="col" class="sort" data-sort="query_pattern_global_occurences">query pattern global occurences</th>
+                        <th scope="col" class="sort" data-sort="query_string">query string</th>
+                        <th scope="col" class="sort" data-sort="displayed_query_with_stripped_where_clauses">query with stripped where clauses</th>
+                    </tr>
+                </thead>
 
-            <tbody class="list"></tbody>
+                <tbody class="list"></tbody>
 
-            <tfoot>
-                <tr id="log_list_item">
-                    <th scope="row" class="date"></th>
-                    <td class="query_time"></td>
-                    <td class="lock_time"></td>
-                    <td class="rows_sent"></td>
-                    <td class="rows_examined"></td>
-                    <td class="db_name"></td>
-                    <td class="query_pattern_filtered_occurences"></td>
-                    <td class="query_pattern_global_occurences"></td>
-                    <td class="qs"><pre class="query_string"></pre></td>
-                    <td class="qs"><pre class="displayed_query_with_stripped_where_clauses"></pre></td>
-                </tr>
-            </tfoot>
-        </table>
+                <tfoot>
+                    <tr id="log_list_item">
+                        <th scope="row" class="date"></th>
+                        <td class="query_time"></td>
+                        <td class="lock_time"></td>
+                        <td class="rows_sent"></td>
+                        <td class="rows_examined"></td>
+                        <td class="db_name"></td>
+                        <td class="query_pattern_filtered_occurences"></td>
+                        <td class="query_pattern_global_occurences"></td>
+                        <td class="qs"><pre class="query_string"></pre></td>
+                        <td class="qs"><pre class="displayed_query_with_stripped_where_clauses"></pre></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
         <p class="credits">MySQL Slow Query Log Visualizer &copy; 2011 <a href="http://www.neurofuzzy.net">Neurofuzzy Consulting</a></p>
     </body>  
 </html>  

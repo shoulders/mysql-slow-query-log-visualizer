@@ -181,6 +181,8 @@ function createList ()
     document.getElementById('drop_zone').style.display = 'none';
     document.getElementById('log_list').style.display = 'table';
 
+    document.getElementById('query_results').style.display = 'block';
+
     $("#log_list_search").keyup(updateTimeChart);
 }
 
@@ -242,7 +244,8 @@ function createChart() {
         list.clear();
         list.add(filterData(logdata, targetHourRange));
     });
-    document.getElementById('time_list').style.display = 'none';
+
+    document.getElementById('chart_container').style.display = 'block';
 }
 
 function updateTimeChart () {
