@@ -327,6 +327,8 @@ function handleFileSelect(evt) {
 
     logdata = [];
 
+    var loadProgress = document.getElementById('load_progress');
+
     var CHUNK_SIZE = 10*1000*1000;// Reading chunks of 10Mo
     var currentStartingBytesOffset = 0;
     var latestEntryText = "";
@@ -337,6 +339,8 @@ function handleFileSelect(evt) {
         Array.prototype.push.apply(logdata, result.logdata);
 
         if(latestChunk) {
+            loadProgress.innerHTML = "Progress : 100%";
+
             var span = document.createElement('span');
             span.innerHTML = "Imported " + logdata.length + " entries.";
             document.getElementById('load_result').insertBefore(span, null);
@@ -344,6 +348,8 @@ function handleFileSelect(evt) {
             createList();
             createChart();
         } else {
+            loadProgress.innerHTML = "Progress : "+Math.round(currentStartingBytesOffset*100/f.size)+"%";
+
             latestEntryText = result.latestEntryText;
             currentStartingBytesOffset += CHUNK_SIZE;
 
