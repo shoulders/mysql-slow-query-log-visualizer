@@ -215,9 +215,12 @@ function createChartFromLogdata(){
 };
 
 function createChart(data, firstDate, lastDate, $timeScaleSelector, $targetChartCanvas, debugGroupedDataGlobalVariableName, chartGlobalVariableName) {
+    var initialArguments = arguments;
+
     $timeScaleSelector.off('change');
     $timeScaleSelector.on('change', function(){
-        createChart(firstDate, lastDate, $timeScaleSelector);
+        // Re-calling create charts with same arguments
+        createChart.apply(null, initialArguments);
     });
 
     var currentTimeScale = TIME_SCALES[$timeScaleSelector.val()];
