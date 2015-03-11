@@ -322,31 +322,67 @@ function handleFileSelect(evt) {
     var output = [];
     var f = files[0];
 
-    output.push('<strong>', f.name, '</strong> (', f.type || 'n/a', ') - ',
-        f.size, ' bytes');
-
+    output.push('<strong>', f.name, '</strong> (', f.type || 'n/a', ') - ', f.size, ' bytes');
     document.getElementById('drop_result').innerHTML = '<h2>Loading ' + output.join('') + '</h2>';
 
+    logdata = [];
 
-    var reader = new FileReader();
-    
-    // Closure to capture the file information.
-    reader.onloadend = function(e) {
-        if (e.target.readyState == FileReader.DONE) {
-            var result = processLog(e.target.result, true);
+    var CHUNK_SIZE = 10*1000*1000;// Reading chunks of 10Mo
+    var currentStartingBytesOffset = 0;
+    var latestEntryText = "";
+    var handleFileChunkRead = function(textRead) {
+        var latestChunk = currentStartingBytesOffset+CHUNK_SIZE > f.size;
+        var result = processLog(latestEntryText+textRead, latestChunk);
+
+        Array.prototype.push.apply(logdata, result.logdata);
+
+        if(latestChunk) {
             var span = document.createElement('span');
-            span.innerHTML = "Imported " + result.logdata.length + " entries.";
+            span.innerHTML = "Imported " + logdata.length + " entries.";
             document.getElementById('load_result').insertBefore(span, null);
-
-            logdata = result.logdata;
 
             createList();
             createChart();
+        } else {
+            latestEntryText = result.latestEntryText;
+            currentStartingBytesOffset += CHUNK_SIZE;
+
+            readFileChunk(f, currentStartingBytesOffset, currentStartingBytesOffset+CHUNK_SIZE).then(handleFileChunkRead);
         }
     };
 
-    // Read in the image file as a data URL.
-    reader.readAsText(f);
+    readFileChunk(f, 0, CHUNK_SIZE).then(handleFileChunkRead);
+}
+
+function readFileChunk(file, startingBytes, endingBytes) {
+    var defer = Q.defer();
+
+    var reader = new FileReader();
+
+    reader.onerror = function(e){
+        switch(e.target.error.code) {
+          case e.target.error.NOT_FOUND_ERR:
+            alert('File Not Found!');
+            break;
+          case e.target.error.NOT_READABLE_ERR:
+            alert('File is not readable');
+            break;
+          case e.target.error.ABORT_ERR:
+            break; // noop
+          default:
+            alert('An error occurred reading this file.');
+        };
+    };
+    reader.onloadend = function(e) {
+        if (e.target.readyState == FileReader.DONE) {
+            defer.resolve(e.target.result);
+        }
+    };
+
+    var blobRead = _.isUndefined(startingBytes)?file:file.slice(startingBytes, endingBytes);
+    reader.readAsText(blobRead);
+
+    return defer.promise;
 }
 
 function handleDragOver(evt) {
