@@ -88,8 +88,11 @@ function processLog (logtextChunk, isLatestChunk) {
         
         var mins = d.getMinutes().toString();
         if (mins.length == 1) mins = "0" + mins;
-        
-        date_string = year + "/" + month + "/" + day + " " + hours + ":" + mins;
+
+        var secs = d.getSeconds().toString();
+        if (secs.length == 1) secs = "0" + secs;
+
+        date_string = year + "/" + month + "/" + day + " " + hours + ":" + mins + ":" + secs;
         
         logdata[i].dateObj = d; // date
         logdata[i].date = date_string;
