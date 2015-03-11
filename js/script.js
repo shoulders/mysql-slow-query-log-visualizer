@@ -202,12 +202,20 @@ var TIME_SCALES = {
     }
 };
 
-function createChart() {
-
+function createChartFromLogdata(){
     var firstDate = _(logdata).min('dateObj').dateObj;
     var lastDate = _(logdata).max('dateObj').dateObj;
 
-    var currentTimeScale = TIME_SCALES[$("#global_time_scale").val()];
+    createChart(firstDate, lastDate, $("#global_time_scale"), $("#globalChart"), 'globalGroupedTimescaleData', 'displayedGlobalChart');
+};
+
+function createChart(firstDate, lastDate, $timeScaleSelector, $targetChartCanvas, globalDebugGroupedDataName, globalChartVariableName) {
+    $timeScaleSelector.off('change');
+    $timeScaleSelector.on('change', function(){
+        createChart(firstDate, lastDate, $timeScaleSelector);
+    });
+
+    var currentTimeScale = TIME_SCALES[$timeScaleSelector.val()];
     var timeScaleRanges = _(_.range(Math.floor((firstDate.getTime())/(currentTimeScale.numberOfMillis)), (lastDate.getTime())/(currentTimeScale.numberOfMillis))).map(function(index) {
         var startingDate = new Date(index*currentTimeScale.numberOfMillis), endingDate = new Date((index+1)*currentTimeScale.numberOfMillis);
         var label = currentTimeScale.format(startingDate);
@@ -221,13 +229,13 @@ function createChart() {
         };
     }).value();
 
-    window.extendedData = _(logdata).map(function(data){
+    window[globalDebugGroupedDataName] = _(logdata).map(function(data){
         return _.extend({}, data, {
             timeScaleIndex: _.findIndex(timeScaleRanges, function(range){ return range.matchesWith(data.dateObj); })
         });
     }).groupBy('timeScaleIndex').value();
 
-    var countsPerTimeScaleIndex = _(extendedData).mapValues('length').value();
+    var countsPerTimeScaleIndex = _(window[globalDebugGroupedDataName]).mapValues('length').value();
 
     var datasets = [{
         label: "Nb requêtes",
@@ -240,26 +248,26 @@ function createChart() {
         data: _(timeScaleRanges).map(function(timeScaleRange, timeScaleIndex){ return countsPerTimeScaleIndex[timeScaleIndex] || 0; }).value()
     }];
 
-    var $chartCanvas = $("#globalChart");
+    var $chartCanvas = $targetChartCanvas;
     var ctx = $chartCanvas.get(0).getContext("2d");
-    if(window.displayedGlobalChart){
-        window.displayedGlobalChart.destroy();
+    if(window[globalChartVariableName]){
+        window[globalChartVariableName].destroy();
     }
-    window.displayedGlobalChart = new Chart(ctx).Line({
+    window[globalChartVariableName] = new Chart(ctx).Line({
         labels: _.pluck(timeScaleRanges, "label"),
         datasets: datasets
     }, {
         pointHitDetectionRadius: 1
     });
     // Hack to be able to retrieve index from x coordinate
-    var datasetIndexFromPointResolvers = _.map(window.displayedGlobalChart.datasets, function(dataset) {
+    var datasetIndexFromPointResolvers = _.map(window[globalChartVariableName].datasets, function(dataset) {
         return {
             indexFromPoint: _(dataset.points).pluck('x').invert().value()
         };
     });
 
     $chartCanvas.click(function(evt){
-        var activePoints = window.displayedGlobalChart.getPointsAtEvent(evt);
+        var activePoints = window[globalChartVariableName].getPointsAtEvent(evt);
         var medianPoint = activePoints[Math.floor(activePoints.length/2)];
         var targetTimeScaleRange = timeScaleRanges[datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
 
@@ -363,11 +371,7 @@ function handleFileSelect(evt) {
             document.getElementById('load_result').insertBefore(span, null);
 
             createList();
-            createChart();
-
-            $("#global_time_scale").change(function(){
-                createChart();
-            });
+            createChartFromLogdata();
         } else {
             loadProgress.innerHTML = "Progress : "+Math.round(currentStartingBytesOffset*100/f.size)+"%";
 
