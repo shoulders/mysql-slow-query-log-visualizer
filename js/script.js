@@ -259,29 +259,36 @@ function createChart(data, firstDate, lastDate, $timeScaleSelector, $targetChart
     var $chartCanvas = $targetChartCanvas;
     var ctx = $chartCanvas.get(0).getContext("2d");
     if(window[chartGlobalVariableName]){
-        window[chartGlobalVariableName].destroy();
+        window[chartGlobalVariableName].chartComponent.destroy();
     }
-    window[chartGlobalVariableName] = new Chart(ctx).Line({
+    var chart = new Chart(ctx).Line({
         labels: _.pluck(timeScaleRanges, "label"),
         datasets: datasets
     }, {
         pointHitDetectionRadius: 1
     });
-    // Hack to be able to retrieve index from x coordinate
-    var datasetIndexFromPointResolvers = _.map(window[chartGlobalVariableName].datasets, function(dataset) {
-        return {
-            indexFromPoint: _(dataset.points).pluck('x').invert().value()
-        };
-    });
+
+    window[chartGlobalVariableName] = {
+        chartComponent: chart,
+        // Hack to be able to retrieve index from x coordinate
+        datasetIndexFromPointResolvers: _.map(chart.datasets, function(dataset) {
+            return {
+                indexFromPoint: _(dataset.points).pluck('x').invert().value()
+            };
+        }),
+        timeScaleRanges: timeScaleRanges
+    };
 
     $chartCanvas.off('click');
     $chartCanvas.on('click', function(evt){
-        var activePoints = window[chartGlobalVariableName].getPointsAtEvent(evt);
+        var chartInfos = window[chartGlobalVariableName];
+        var activePoints = chartInfos.chartComponent.getPointsAtEvent(evt);
         var medianPoint = activePoints[Math.floor(activePoints.length/2)];
-        var targetTimeScaleRange = timeScaleRanges[datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
         if(!medianPoint) {
             return;
         }
+
+        var targetTimeScaleRange = chartInfos.timeScaleRanges[chartInfos.datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
 
         // Ensuring filtering criteria is defined
         window.filteringCriteria = window.filteringCriteria || { even: 0, start: null, end: null };
