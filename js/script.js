@@ -274,7 +274,8 @@ function createChart(data, firstDate, lastDate, $timeScaleSelector, $targetChart
         };
     });
 
-    $chartCanvas.click(function(evt){
+    $chartCanvas.off('click');
+    $chartCanvas.on('click', function(evt){
         var activePoints = window[chartGlobalVariableName].getPointsAtEvent(evt);
         var medianPoint = activePoints[Math.floor(activePoints.length/2)];
         var targetTimeScaleRange = timeScaleRanges[datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
