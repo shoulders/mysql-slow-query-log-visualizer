@@ -279,6 +279,9 @@ function createChart(data, firstDate, lastDate, $timeScaleSelector, $targetChart
         var activePoints = window[chartGlobalVariableName].getPointsAtEvent(evt);
         var medianPoint = activePoints[Math.floor(activePoints.length/2)];
         var targetTimeScaleRange = timeScaleRanges[datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
+        if(!medianPoint) {
+            return;
+        }
 
         // Ensuring filtering criteria is defined
         window.filteringCriteria = window.filteringCriteria || { even: 0, start: null, end: null };
