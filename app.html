@@ -77,14 +77,14 @@ OTHER DEALINGS IN THE SOFTWARE.
         <output id="load_progress"></output>
         <output id="load_result"></output>
 
-        <div id="chart_container" width="100%" style="display: none">
+        <div id="global_chart_container" class="chart_container" width="100%" style="display: none">
             <h2>GLOBAL DATA (click twice on graph to define working data)</h2>
-            Time scale : <select id="time_scale">
+            Time scale : <select id="global_time_scale">
                 <option value="hourly">Hourly</option>
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
             </select><br/>
-            <canvas id="chart" width="1280px" height="600"></canvas>
+            <canvas id="globalChart" class="chart" width="1280px" height="600"></canvas>
         </div>
 
         <br /><br />

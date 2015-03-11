@@ -207,7 +207,7 @@ function createChart() {
     var firstDate = _(logdata).min('dateObj').dateObj;
     var lastDate = _(logdata).max('dateObj').dateObj;
 
-    var currentTimeScale = TIME_SCALES[$("#time_scale").val()];
+    var currentTimeScale = TIME_SCALES[$("#global_time_scale").val()];
     var timeScaleRanges = _(_.range(Math.floor((firstDate.getTime())/(currentTimeScale.numberOfMillis)), (lastDate.getTime())/(currentTimeScale.numberOfMillis))).map(function(index) {
         var startingDate = new Date(index*currentTimeScale.numberOfMillis), endingDate = new Date((index+1)*currentTimeScale.numberOfMillis);
         var label = currentTimeScale.format(startingDate);
@@ -240,26 +240,26 @@ function createChart() {
         data: _(timeScaleRanges).map(function(timeScaleRange, timeScaleIndex){ return countsPerTimeScaleIndex[timeScaleIndex] || 0; }).value()
     }];
 
-    var $chartCanvas = $("#chart");
+    var $chartCanvas = $("#globalChart");
     var ctx = $chartCanvas.get(0).getContext("2d");
-    if(window.globalChart){
-        window.globalChart.destroy();
+    if(window.displayedGlobalChart){
+        window.displayedGlobalChart.destroy();
     }
-    window.globalChart = new Chart(ctx).Line({
+    window.displayedGlobalChart = new Chart(ctx).Line({
         labels: _.pluck(timeScaleRanges, "label"),
         datasets: datasets
     }, {
         pointHitDetectionRadius: 1
     });
     // Hack to be able to retrieve index from x coordinate
-    var datasetIndexFromPointResolvers = _.map(window.globalChart.datasets, function(dataset) {
+    var datasetIndexFromPointResolvers = _.map(window.displayedGlobalChart.datasets, function(dataset) {
         return {
             indexFromPoint: _(dataset.points).pluck('x').invert().value()
         };
     });
 
     $chartCanvas.click(function(evt){
-        var activePoints = window.globalChart.getPointsAtEvent(evt);
+        var activePoints = window.displayedGlobalChart.getPointsAtEvent(evt);
         var medianPoint = activePoints[Math.ceil(activePoints.length/2)];
         var targetTimeScaleRange = timeScaleRanges[datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
 
@@ -267,7 +267,7 @@ function createChart() {
         list.add(filterData(logdata, targetTimeScaleRange));
     });
 
-    document.getElementById('chart_container').style.display = 'block';
+    document.getElementById('global_chart_container').style.display = 'block';
 }
 
 function updateTimeChart () {
@@ -365,7 +365,7 @@ function handleFileSelect(evt) {
             createList();
             createChart();
 
-            $("#time_scale").change(function(){
+            $("#global_time_scale").change(function(){
                 createChart();
             });
         } else {
