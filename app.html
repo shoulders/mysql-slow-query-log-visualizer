@@ -2,19 +2,19 @@
 <html lang="en">
     <!--
 MySQL Slow Query Log Visualizer
-By Geoff Gaudreault (http://www.neurofuzzy.net)
+By Frédéric Camblor (http://www.4sh.fr) and Geoff Gaudreault (http://www.neurofuzzy.net)
 
 Many thanks to:
 
 List.js author Jonny Strömberg (www.jonnystromberg.se, www.listjs.com)
 https://github.com/javve/list
 
-jQuery Visualize author Scott Jehl, Filament Group scott@filamentgroup.com
-https://github.com/filamentgroup/jQuery-Visualize
+Initial MySQL Slow Query Log Visualizer Geoff Gaudreault http://www.neurofuzzy.net
+https://code.google.com/p/mysql-slow-query-log-visualizer/
 
 License (MIT)
 
-Copyright (c) 2011 Geoff Gaudreault http://www.neurofuzzy.net
+Copyright (c) 2015 Frédéric Camblor http://www.4sh.fr
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -79,6 +79,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
         <div id="global_chart_container" class="chart_container" width="100%" style="display: none">
             <h2>GLOBAL CHART (click twice on graph to define working data)</h2>
+            <span id="global_chart_queries_count"></span><br/>
             Time scale : <select id="global_time_scale">
                 <option value="minutely">Minutely</option>
                 <option value="hourly" selected>Hourly</option>
@@ -92,6 +93,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
         <div id="working_chart_container" class="chart_container" width="100%" style="display: none">
             <h2>WORKING CHART (click twice on graph to define new working data)</h2>
+            <span id="working_chart_queries_count"></span><br/>
             Time scale : <select id="working_time_scale">
                 <option value="minutely">Minutely</option>
                 <option value="hourly" selected>Hourly</option>
@@ -148,6 +150,6 @@ OTHER DEALINGS IN THE SOFTWARE.
                 </tfoot>
             </table>
         </div>
-        <p class="credits">MySQL Slow Query Log Visualizer &copy; 2011 <a href="http://www.neurofuzzy.net">Neurofuzzy Consulting</a></p>
+        <p class="credits">MySQL Slow Query Log Visualizer &copy; 2015 <a href="http://www.4sh.fr">4SH</a> and <a href="http://www.neurofuzzy.net">Neurofuzzy Consulting</a></p>
     </body>  
 </html>  
