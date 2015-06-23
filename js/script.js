@@ -214,10 +214,14 @@ function createChartFromLogdata(){
     var firstDate = _(logdata).min('dateObj').dateObj;
     var lastDate = _(logdata).max('dateObj').dateObj;
 
-    createChart(logdata, firstDate, lastDate, $("#global_time_scale"), $("#globalChart"), 'globalGroupedTimescaleData', 'displayedGlobalChart');
+    createChart(logdata, firstDate, lastDate,
+        $("#global_time_scale"), $("#globalChart"), $("#global_chart_queries_count"),
+        'globalGroupedTimescaleData', 'displayedGlobalChart');
 };
 
-function createChart(data, firstDate, lastDate, $timeScaleSelector, $targetChartCanvas, debugGroupedDataGlobalVariableName, chartGlobalVariableName) {
+function createChart(data, firstDate, lastDate,
+                     $timeScaleSelector, $targetChartCanvas, $queryCountContainer,
+                     debugGroupedDataGlobalVariableName, chartGlobalVariableName) {
     var initialArguments = arguments;
 
     $timeScaleSelector.off('change');
@@ -282,6 +286,8 @@ function createChart(data, firstDate, lastDate, $timeScaleSelector, $targetChart
         timeScaleRanges: timeScaleRanges
     };
 
+    $queryCountContainer.html("Displaying "+data.length+" queries");
+
     $chartCanvas.off('click');
     $chartCanvas.on('click', function(evt){
         var chartInfos = window[chartGlobalVariableName];
@@ -313,7 +319,7 @@ function createChart(data, firstDate, lastDate, $timeScaleSelector, $targetChart
             filteredData,
             window.filteringCriteria.start?window.filteringCriteria.start.startingDate:firstDate,
             window.filteringCriteria.end?window.filteringCriteria.end.endingDate:lastDate,
-            $("#working_time_scale"), $("#workingChart"),
+            $("#working_time_scale"), $("#workingChart"), $("#working_chart_queries_count"),
             'workingGroupedTimescaleData', 'displayedWorkingChart');
 
         document.getElementById('working_chart_container').style.display = 'block';
