@@ -71,6 +71,7 @@ OTHER DEALINGS IN THE SOFTWARE.
     <body onload="start();">  
 
         <h1>MySQL Slow Query Log Visualizer</h1>
+        <em>If you need to process very large files (>500MB), you will have to call Chrome with <strong>--js-flags="--max-old-space-size=5000"</strong> parameter to increase memory allocatable by Chrome to 5GB</em>
         <div id="drop_zone">Drop log file here</div>
 
         <output id="drop_result"></output>
