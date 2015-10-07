@@ -3,6 +3,9 @@ mysql-slow-query-log-visualizer
 
 Usage :
 - First, upload a mysql slow.log file (not that ATM, big files are not handled correctly)
+  If you need to load very great files, you will need to use chrome and launch chrome with `--js-flags="--max-old-space-size=5000"` in order to
+  allocate 5GB to chrome and avoid memory errors due to huge load of things in memory.
+  Another command to know if you have huge file, is to split your file into several files : `split --bytes=512M --additional-suffix=.log slow.log slow.`
 - A timegraph of your queries will be displayed, with every queries displayed
 - If you click points on the graph, you will limit the displayed queries with low/high time bounds
 - In the displayed queries, some columns may be of interest :
