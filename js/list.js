@@ -50,6 +50,7 @@ var List = function(id, options, values) {
 
     this.searched = false;
     this.filtered = false;
+    this.reverseSearch = false;
 
     this.list = null;
     this.templateEngines = {};
@@ -60,11 +61,15 @@ var List = function(id, options, values) {
         options.list = options.list || id;
         options.listClass = options.listClass || 'list';
         options.searchClass = options.searchClass || 'search';
+        options.reverseSearchClass = options.reverseSearchClass || 'reverseSearch';
         options.sortClass = options.sortClass || 'sort';
 
         templater = new Templater(self, options);
         self.list = h.getByClass(options.listClass, self.listContainer, true);
         h.addEvent(h.getByClass(options.searchClass, self.listContainer), 'keyup', self.search);
+        $("."+options.reverseSearchClass).on("change", function(){
+            self.reverseSearch = $(this).is(":checked"); self.search();
+        });
         sortButtons = h.getByClass(options.sortClass, self.listContainer);
         h.addEvent(sortButtons, 'click', self.sort);
         if (options.valueNames) {
@@ -347,7 +352,7 @@ var List = function(id, options, values) {
                         }
                     }
                 }
-                if (found) {
+                if ((!self.reverseSearch && found) || (self.reverseSearch && !found)) {
                     item.found = true;
                     matching.push(item);
                 } else {
