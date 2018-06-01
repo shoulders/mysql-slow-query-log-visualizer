@@ -117,7 +117,7 @@ function processLog (logtextChunk, isLatestChunk) {
     }
 
     var dataGroupedByStrippedQueries = _.groupBy(logdata, 'query_with_stripped_where_clauses');
-    var hideShowButtons = '<a class="showBtn" onclick="showQuery(this);">Show</a><a class="hideBtn" onclick="hideQuery(this);" style="display:none">Hide</a>';
+    var hideShowButtons = '<button class="showBtn" onclick="showQuery(this);">Show</button> <button class="hideBtn" onclick="hideQuery(this);" style="display:none">Hide</button> <button class="copyToClipboardBtn">Copy</button>';
     _.each(logdata, function(data) {
         data.query_string = hideShowButtons+'<span style="display:none"><br/>'+data.query_string+'</span>';
         data.displayed_query_with_stripped_where_clauses = hideShowButtons+'<span style="display:none"><br/>'+data.query_with_stripped_where_clauses+'</span>';
@@ -187,6 +187,12 @@ function createList ()
     document.getElementById('query_results').style.display = 'block';
 
     $("#log_list_search").keyup(updateTimeChart);
+
+    new ClipboardJS('.copyToClipboardBtn', {
+        text: function(trigger){
+            return trigger.nextElementSibling.innerText;
+        }
+    });
 }
 
 var TIME_SCALES = {
