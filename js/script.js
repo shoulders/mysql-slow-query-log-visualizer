@@ -132,6 +132,10 @@ function processLog (logtextChunk, isLatestChunk) {
     return logdata.length;
 }
 
+function copyQuery(_this) {
+  copy($(_this).siblings("span").text());
+}
+
 function calculateQueryPatternOccurencesTextOn(dataItems) {
     var dataGroupedByStrippedQueries = _.groupBy(dataItems, 'query_with_stripped_where_clauses');
     _.each(dataItems, function(data) {
@@ -237,9 +241,11 @@ function createChart(data, firstDate, lastDate,
     });
 
     var currentTimeScale = TIME_SCALES[$timeScaleSelector.val()];
-    var timeScaleRanges = _(_.range(Math.floor((firstDate.getTime())/(currentTimeScale.numberOfMillis)), (lastDate.getTime())/(currentTimeScale.numberOfMillis))).map(function(index) {
+    var NB_DISPLAYED_LABELS = 30;
+    var timeScaleRanges = _(_.range(Math.floor((firstDate.getTime())/(currentTimeScale.numberOfMillis)), (lastDate.getTime())/(currentTimeScale.numberOfMillis))).map(function(index, itemsIndex, items) {
         var startingDate = new Date(index*currentTimeScale.numberOfMillis), endingDate = new Date((index+1)*currentTimeScale.numberOfMillis);
-        var label = currentTimeScale.format(startingDate);
+        var displayedLabel = (items.length < NB_DISPLAYED_LABELS) || (itemsIndex % (Math.round(items.length/NB_DISPLAYED_LABELS)) === 0);
+        var label = displayedLabel?currentTimeScale.format(startingDate):"";
         return {
             startingDate: startingDate,
             endingDate: endingDate,
