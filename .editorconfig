@@ -21,7 +21,7 @@ indent_style = space
 indent_size = 2
 
 # Exclude Files and Folders (Paths)
-[/{localonly,vendor}/**]
+[/{localonly,vendor,js,bower_components}/**]
 generated_code = true
 indent_style = unset
 indent_size = unset

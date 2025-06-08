@@ -1,0 +1,28 @@
+C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqld, Version: 5.5.61-log (MySQL Community Server (GPL)). started with:
+TCP Port: 3306, Named Pipe: (null)
+Time                 Id Command    Argument 
+# Time: 220927 10:40:06
+# User@Host: matias[matias] @ pc2 [192.168.0.11]
+# Query_time: 24.399250  Lock_time: 0.000000 Rows_sent: 7457  Rows_examined: 38188322
+SET timestamp=1664286006;
+SELECT a.Apellido, a.nombre, a.DOC documento, a.f_alta, a.f_baja, a.f_nacimiento,  e.empresa, v.descripcion vinculo,  p.apellidos apellido_familiar FROM afil a  INNER JOIN emp e ON a.Empresa = e.codigo  LEFT JOIN familiar p ON a.ID = p.afiliado AND p.vinc != 0  LEFT JOIN vinculos v ON p.vinc = v.id;
+# Time: 220928 17:08:58
+# User@Host: walterpais81[walterpais81] @  [192.168.0.12]
+# Query_time: 7.415476  Lock_time: 0.000000 Rows_sent: 54460  Rows_examined: 54460
+SET timestamp=1664395738;
+select * from `ordenes_cab`;
+# Time: 220928 17:09:21
+# User@Host: walterpais81[walterpais81] @  [192.168.0.12]
+# Query_time: 20.877473  Lock_time: 0.000000 Rows_sent: 142533  Rows_examined: 142533
+SET timestamp=1664395761;
+select * from `ordenes_det`;
+# Time: 220928 17:10:22
+# User@Host: walterpais81[walterpais81] @  [192.168.0.12]
+# Query_time: 5.649303  Lock_time: 0.000000 Rows_sent: 54460  Rows_examined: 54460
+SET timestamp=1664395822;
+select * from `ordenes_cab`;
+# Time: 220928 17:10:48
+# User@Host: walterpais81[walterpais81] @  [192.168.0.12]
+# Query_time: 24.912687  Lock_time: 0.000000 Rows_sent: 142533  Rows_examined: 142533
+SET timestamp=1664395848;
+select * from `ordenes_det`; 

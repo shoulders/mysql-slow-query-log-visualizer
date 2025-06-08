@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>
 <html lang="en">
     <!--
 MySQL Slow Query Log Visualizer
@@ -37,8 +37,8 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 
     -->
-    <head>  
-        <meta charset="utf-8">  
+    <head>
+        <meta charset="utf-8">
         <title>MySQL Slow Query Log Visualizer</title>
 
         <!-- base -->
@@ -46,30 +46,30 @@ OTHER DEALINGS IN THE SOFTWARE.
         <script src="js/script.js"></script>
 
         <!-- visualizer -->
-        <script type="text/javascript" src="js/enhance.js"></script>	
+        <script type="text/javascript" src="js/enhance.js"></script>
         <script type="text/javascript">
             // Run capabilities test
             enhance({
                 loadScripts: [
                     {src: 'js/excanvas.js', iecondition: 'all'},
-                     'bower_components/jquery/dist/jquery.min.js',
+                     'bower_components/jquery-3.7.1.min.js',
                      'bower_components/chartjs/Chart.js',
-                     'bower_components/lodash/lodash.js',
+                     'bower_components/lodash.js',
                      'bower_components/q/q.js',
-                     'bower_components/clipboard/dist/clipboard.min.js'
+                     'bower_components/clipboard/clipboard.min.js'
                 ],
                 loadStyles: [
                     'css/visualize.css',
                     'css/visualize-dark.css'
-                ]	
-            });   
+                ]
+            });
         </script>
 
-        <!-- list --> 
+        <!-- list -->
         <script src="js/list.js"></script>
 
-    </head>  
-    <body onload="start();">  
+    </head>
+    <body onload="start();">
 
         <h1>MySQL Slow Query Log Visualizer</h1>
         <em>If you need to process very large files (>500MB), you will have to call Chrome with <strong>--js-flags="--max-old-space-size=5000"</strong> parameter to increase memory allocatable by Chrome to 5GB</em>
@@ -154,5 +154,5 @@ OTHER DEALINGS IN THE SOFTWARE.
             </table>
         </div>
         <p class="credits">MySQL Slow Query Log Visualizer &copy; 2015 <a href="http://www.4sh.fr">4SH</a> and <a href="http://www.neurofuzzy.net">Neurofuzzy Consulting</a></p>
-    </body>  
-</html>  
+    </body>
+</html>
