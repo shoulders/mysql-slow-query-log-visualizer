@@ -46,24 +46,14 @@ OTHER DEALINGS IN THE SOFTWARE.
         <script src="js/script.js"></script>
 
         <!-- visualizer -->
-        <script type="text/javascript" src="js/enhance.js"></script>
-        <script type="text/javascript">
-            // Run capabilities test
-            enhance({
-                loadScripts: [
-                    {src: 'js/excanvas.js', iecondition: 'all'},
-                     'bower_components/jquery-3.7.1.min.js',
-                     'bower_components/chartjs/Chart.js',
-                     'bower_components/lodash.js',
-                     'bower_components/q/q.js',
-                     'bower_components/clipboard/clipboard.min.js'
-                ],
-                loadStyles: [
-                    'css/visualize.css',
-                    'css/visualize-dark.css'
-                ]
-            });
-        </script>
+        <!--<script type="text/javascript" src="js/enhance.js"></script>-->
+        <script type="text/javascript" src="js/excanvas.js"></script>
+        <script type="text/javascript" src="bower_components/jquery-3.7.1.min.js"></script>
+        <script type="text/javascript" src="bower_components/chartjs/chart.umd.js"></script>
+        <script type="text/javascript" src="bower_components/lodash.js"></script>
+        <script type="text/javascript" src="bower_components/clipboard/clipboard.min.js"></script>
+        <link rel="stylesheet" href="css/visualize.css">
+        <link rel="stylesheet" href="css/visualize-dark.css">
 
         <!-- list -->
         <script src="js/list.js"></script>
@@ -72,13 +62,14 @@ OTHER DEALINGS IN THE SOFTWARE.
     <body onload="start();">
 
         <h1>MySQL Slow Query Log Visualizer</h1>
-        <em>If you need to process very large files (>500MB), you will have to call Chrome with <strong>--js-flags="--max-old-space-size=5000"</strong> parameter to increase memory allocatable by Chrome to 5GB</em>
+        <em>If you need to process very large files (&gt;500MB), you will have to call Chrome with <strong>--js-flags="--max-old-space-size=5000"</strong> parameter to increase memory allocatable by Chrome to 5GB</em>
         <div id="drop_zone">Drop log file here</div>
 
         <output id="drop_result"></output>
         <output id="load_progress"></output>
         <output id="load_result"></output>
 
+        <!-- Global Chart -->
         <div id="global_chart_container" class="chart_container" width="100%" style="display: none">
             <h2>GLOBAL CHART (click twice on graph to define working data)</h2>
             <span id="global_chart_queries_count"></span><br/>
@@ -93,6 +84,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
         <br /><br />
 
+        <!-- Working Chart -->
         <div id="working_chart_container" class="chart_container" width="100%" style="display: none">
             <h2>WORKING CHART (click twice on graph to define new working data)</h2>
             <span id="working_chart_queries_count"></span><br/>
@@ -107,6 +99,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
         <br /><br />
 
+        <!-- Table -->
         <div id="query_results" style="display:none">
             Chart filtering : start=<span id="filterStart"></span>, end=<span id="filterEnd"></span>
             <table id="log_list">

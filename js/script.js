@@ -36,106 +36,119 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-function processLog (logtextChunk, isLatestChunk) {
+// Process the uploaded slow query log, parseout the records
+function processLog(logText) {
     var log_entry;
     var log_lines;
     var date_string;
-    var entry_stats;
-    
-    var logdataAsText = logtextChunk.split("# User@Host: ");
-    logdataAsText.shift();
+    var entry_stats;     
 
-    var logdata = [];
-    for (var i = 0; i < logdataAsText.length-(isLatestChunk?0:1); i++) {
-        
-        // load string
-        
-        log_entry = logdataAsText[i];
+    // Split the text blob into records into an array by splitting at "# User@Host: "
+    var logTextAsRecords = logText.split("# User@Host: ");   // chunking is relying on a smooth cut between records = bad
+
+    // remove the first element from an array and return that removed element.
+    // It modifies the original array by reducing its length by one.
+    // If the array is empty, it returns undefined.
+    // I think this removes the header - NB: header is not always present so will need to be address otherwise the first record is lost
+    logTextAsRecords.shift();    
+    
+    // Cycle through the extracted text records array and process them in to usable records in a new array
+    for (var i = 0; i < logTextAsRecords.length; i++) {
+
+        // Make an array for the new record
+        logdata[i] = {};
+
+        // Load text record for processing        
+        log_entry = logTextAsRecords[i];
+
+        // Split the record into separate lines for easier processing
         log_lines = log_entry.split("\n");
 
+        // not sure what this gets/does ****** is thi sin the right place
         entry_stats = log_lines[1].split(" ");
 
-        logdata[i] = {
-            // get host
-            db_name: log_lines[0].split("[")[1].split("]")[0],
-            // get stats
-            query_time: entry_stats[2], // query time
-            lock_time: entry_stats[5], // lock time
-            rows_sent: entry_stats[7], // rows sent
-            rows_examined: entry_stats[10] // row examined
-        };
+        // Add Host
+        logdata[i].db_name = log_lines[0].split("[")[1].split("]")[0];
 
+        // Add Thread_id/Schema/QC....
+        /////////////////////
+
+        // Add Query Stats
+        logdata[i].query_time = entry_stats[2]; // Query time
+        logdata[i].lock_time = entry_stats[5]; // Lock time
+        logdata[i].rows_sent = entry_stats[7]; // Rows sent
+        logdata[i].rows_examined = entry_stats[10]; // Rows examined
+
+        // Database Interaction Stats
+        //////////////////////////
+
+        // Get Date String
         if (log_lines[2].substr(0,3) == "use") {
             log_lines.shift(); 
         }
+
         date_string = log_lines[2].split("SET timestamp=")[1].split(";")[0];
         
-        // parse date
-        d = new Date(date_string * 1000);
-        
-        var year = d.getFullYear();
-        
+        d = new Date(date_string * 1000);        
+        var year = d.getFullYear();        
         var month = (d.getUTCMonth() + 1) + "";
-        if (month.length == 1) month = "0" + month;
-        
+        if (month.length == 1) month = "0" + month;        
         var day = d.getDate().toString();
-        if (day.length == 1) day = "0" + day;
-        
-        var dayOfWeek = d.getDay();
-        
+        if (day.length == 1) day = "0" + day;        
+        var dayOfWeek = d.getDay();        
         var hours = d.getHours().toString();
-        if (hours.length == 1) hours = "0" + hours;
-        
+        if (hours.length == 1) hours = "0" + hours;        
         var mins = d.getMinutes().toString();
         if (mins.length == 1) mins = "0" + mins;
-
         var secs = d.getSeconds().toString();
         if (secs.length == 1) secs = "0" + secs;
 
         date_string = year + "/" + month + "/" + day + " " + hours + ":" + mins + ":" + secs;
         
+        // Add Date
         logdata[i].dateObj = d; // date
         logdata[i].date = date_string;
         logdata[i].hour = hours;
         
-        // isolate query
+        // isolate query  *** not sue what this does
         
         log_lines.shift();
         log_lines.shift();
         log_lines.shift();
         
+        // Add Query Strings
         logdata[i].query_string = log_lines.join("\n").split("# Time: ")[0]; // query
         logdata[i].query_with_stripped_where_clauses = stripWhereClauses(logdata[i].query_string);
         
-        // time stats
-        
+        // Time Stats        
         if (timedata[dayOfWeek][hours] == null) {
             timedata[dayOfWeek][hours] = 0;
-        }
-        
+        }        
         timedata[dayOfWeek][hours]++;
     }
 
     var dataGroupedByStrippedQueries = _.groupBy(logdata, 'query_with_stripped_where_clauses');
+
+    // Build Buttons
     var hideShowButtons = '<button class="showBtn" onclick="showQuery(this);">Show</button> <button class="hideBtn" onclick="hideQuery(this);" style="display:none">Hide</button> <button class="copyToClipboardBtn">Copy</button>';
     _.each(logdata, function(data) {
         data.query_string = hideShowButtons+'<span style="display:none"><br/>'+data.query_string+'</span>';
         data.displayed_query_with_stripped_where_clauses = hideShowButtons+'<span style="display:none"><br/>'+data.query_with_stripped_where_clauses+'</span>';
         data.query_pattern_global_occurences = dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length;
     });
+
+
     calculateQueryPatternOccurencesTextOn(logdata);
 
-    return {
-        logdata: logdata,
-        latestEntryText: isLatestChunk?null:logdataAsText[logdataAsText.length-1]
-    };
     return logdata.length;
 }
 
+// not present
 function copyQuery(_this) {
   copy($(_this).siblings("span").text());
 }
 
+// not present
 function calculateQueryPatternOccurencesTextOn(dataItems) {
     var dataGroupedByStrippedQueries = _.groupBy(dataItems, 'query_with_stripped_where_clauses');
     _.each(dataItems, function(data) {
@@ -143,18 +156,21 @@ function calculateQueryPatternOccurencesTextOn(dataItems) {
     });
 }
 
+// not present
 function showQuery(node) {
     $(node).siblings('span').show();
     $(node).siblings('.hideBtn').show();
     $(node).hide();
 }
 
+// not present
 function hideQuery(node) {
     $(node).siblings('span').hide();
     $(node).hide();
     $(node).siblings('.showBtn').show();
 }
 
+// not present
 function stripWhereClauses(query) {
     var indexOfWhere = query.toUpperCase().lastIndexOf("WHERE");
     var initialRadical = query.substr(0, indexOfWhere);
@@ -176,6 +192,7 @@ function stripWhereClauses(query) {
     return initialRadical + chunkToReplace;
 }
 
+// different - Change from file dropbox to data table
 function createList ()
 {
     var options = {
@@ -185,8 +202,8 @@ function createList ()
     
     list = new List('log_list', options, logdata);
     
-    document.getElementById('drop_zone').style.display = 'none';
-    document.getElementById('log_list').style.display = 'table';
+    document.getElementById('drop_zone').style.display = 'none';  // hide the rop file box
+    document.getElementById('log_list').style.display = 'table';  // unhide the data table
 
     document.getElementById('query_results').style.display = 'block';
 
@@ -220,19 +237,26 @@ var TIME_SCALES = {
     }
 };
 
+// not present - called from chunking to build the graph
 function createChartFromLogdata(){
+
+    // Get data range
     var firstDate = _(logdata).min('dateObj').dateObj;
     var lastDate = _(logdata).max('dateObj').dateObj;
 
+    // Create Chart
     createChart(logdata, firstDate, lastDate,
         $("#global_time_scale"), $("#globalChart"), $("#global_chart_queries_count"),
         'globalGroupedTimescaleData', 'displayedGlobalChart');
 };
 
+// different (much bigger) - create global (and working chart)
 function createChart(data, firstDate, lastDate,
                      $timeScaleSelector, $targetChartCanvas, $queryCountContainer,
                      debugGroupedDataGlobalVariableName, chartGlobalVariableName) {
+                        
     var initialArguments = arguments;
+    debugger;
 
     $timeScaleSelector.off('change');
     $timeScaleSelector.on('change', function(){
@@ -255,6 +279,7 @@ function createChart(data, firstDate, lastDate,
             matchesWith: function(date) { return this.matchesWithLowBound(date) && this.matchesWithHighBound(date); }
         };
     }).value();
+    debugger;
 
     window[debugGroupedDataGlobalVariableName] = _(data).map(function(data){
         return _.extend({}, data, {
@@ -326,7 +351,9 @@ function createChart(data, firstDate, lastDate,
         list.clear();
         var filteredData = filterData(logdata, window.filteringCriteria);
         list.add(filteredData);
+        debugger;
 
+        // Create the working chart with filtered data
         createChart(
             filteredData,
             window.filteringCriteria.start?window.filteringCriteria.start.startingDate:firstDate,
@@ -334,12 +361,15 @@ function createChart(data, firstDate, lastDate,
             $("#working_time_scale"), $("#workingChart"), $("#working_chart_queries_count"),
             'workingGroupedTimescaleData', 'displayedWorkingChart');
 
+            debugger;
         document.getElementById('working_chart_container').style.display = 'block';
     });
+    debugger;
 
     document.getElementById('global_chart_container').style.display = 'block';
 }
 
+// different
 function updateTimeChart () {
     
     var count = 0;
@@ -372,6 +402,7 @@ function updateTimeChart () {
     $('.visualize').trigger('visualizeRefresh');
 }
 
+// not present
 function filterData(data, criteria) {
     var filteredData = (criteria.start || criteria.end)?
         _.filter(data, function(item){
@@ -389,6 +420,7 @@ function filterData(data, criteria) {
     return filteredData;
 }
 
+// load the file as text and process
 function handleFileSelect(evt) {
     evt.stopPropagation();
     evt.preventDefault();
@@ -402,6 +434,48 @@ function handleFileSelect(evt) {
     output.push('<strong>', f.name, '</strong> (', f.type || 'n/a', ') - ', f.size, ' bytes');
     document.getElementById('drop_result').innerHTML = '<h2>Loading ' + output.join('') + '</h2>';
 
+    var reader = new FileReader();
+    
+    // Closure to capture the file information.
+    reader.onloadend = function(e) {
+        if (e.target.readyState == FileReader.DONE) {
+
+            // send the text file to processing
+            var len = processLog(e.target.result);
+
+            //loadProgress.innerHTML = "Progress : 100%";
+
+            var span = document.createElement('span');
+            span.innerHTML = "Imported " + logdata.length + " entries.";
+            document.getElementById('load_result').insertBefore(span, null);
+
+            // Build the table / Change from file dropbox to data table
+            createList();
+
+            // Create the chart // Build and display the Chart
+            try {
+                createChartFromLogdata();
+            } catch (error) {
+                console.log(error);
+            }
+            
+            // Update page to show imported
+            var span = document.createElement('span');
+            span.innerHTML = "Imported " + len + " entries.";
+            document.getElementById('load_result').insertBefore(span, null);
+
+        }
+    };
+
+    // Read in the image file as a data URL.
+    reader.readAsText(f);
+
+}
+
+/* use this code to make a processing progress bar 
+function donotuse(){
+    document.getElementById('drop_result').innerHTML = '<h2>Loading ' + output.join('') + '</h2>';
+    
     logdata = [];
 
     var loadProgress = document.getElementById('load_progress');
@@ -409,21 +483,25 @@ function handleFileSelect(evt) {
     var CHUNK_SIZE = 10*1000*1000;// Reading chunks of 10Mo
     var currentStartingBytesOffset = 0;
     var latestEntryText = "";
-    var handleFileChunkRead = function(textRead) {
-        var latestChunk = currentStartingBytesOffset+CHUNK_SIZE > f.size;
-        var result = processLog(latestEntryText+textRead, latestChunk);
 
-        Array.prototype.push.apply(logdata, result.logdata);
 
+            // Is this the last chunk of the file
         if(latestChunk) {
+
+            debugger;
+
             loadProgress.innerHTML = "Progress : 100%";
 
             var span = document.createElement('span');
             span.innerHTML = "Imported " + logdata.length + " entries.";
             document.getElementById('load_result').insertBefore(span, null);
 
+            // Change from file dropbox to data table
             createList();
+
+            // create the chart
             createChartFromLogdata();
+
         } else {
             loadProgress.innerHTML = "Progress : "+Math.round(currentStartingBytesOffset*100/f.size)+"%";
 
@@ -433,54 +511,27 @@ function handleFileSelect(evt) {
             readFileChunk(f, currentStartingBytesOffset, currentStartingBytesOffset+CHUNK_SIZE).then(handleFileChunkRead);
         }
     };
+    debugger;
 
     readFileChunk(f, 0, CHUNK_SIZE).then(handleFileChunkRead);
-}
+}*/
 
-function readFileChunk(file, startingBytes, endingBytes) {
-    var defer = Q.defer();
-
-    var reader = new FileReader();
-
-    reader.onerror = function(e){
-        switch(e.target.error.code) {
-          case e.target.error.NOT_FOUND_ERR:
-            alert('File Not Found!');
-            break;
-          case e.target.error.NOT_READABLE_ERR:
-            alert('File is not readable');
-            break;
-          case e.target.error.ABORT_ERR:
-            break; // noop
-          default:
-            alert('An error occurred reading this file.');
-        };
-    };
-    reader.onloadend = function(e) {
-        if (e.target.readyState == FileReader.DONE) {
-            defer.resolve(e.target.result);
-        }
-    };
-
-    var blobRead = _.isUndefined(startingBytes)?file:file.slice(startingBytes, endingBytes);
-    reader.readAsText(blobRead);
-
-    return defer.promise;
-}
-
+// orig
 function handleDragOver(evt) {
     evt.stopPropagation();
     evt.preventDefault();
     evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
 }
 
+// orig
 function start() {
-    // Setup the dnd listeners.
+    // Setup the dnd listeners. (for when somene drops a file into the drop_xzone)
     var dropZone = document.getElementById('drop_zone');
-    dropZone.addEventListener('dragover', handleDragOver, false);
-    dropZone.addEventListener('drop', handleFileSelect, false);
+    dropZone.addEventListener('dragover', handleDragOver, false);  // maybe this can be use to convert the background or hide a select file buttong
+    dropZone.addEventListener('drop', handleFileSelect, false);  // this is triggered when you drag and drop a file
 }
 
+// orig
 var logdata = [];
 var timedata = [];
 var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
