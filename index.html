@@ -1,63 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-    <!--
-MySQL Slow Query Log Visualizer
-By Frédéric Camblor (http://www.4sh.fr) and Geoff Gaudreault (http://www.neurofuzzy.net)
-
-Many thanks to:
-
-List.js author Jonny Strömberg (www.jonnystromberg.se, www.listjs.com)
-https://github.com/javve/list
-
-Initial MySQL Slow Query Log Visualizer Geoff Gaudreault http://www.neurofuzzy.net
-https://code.google.com/p/mysql-slow-query-log-visualizer/
-
-License (MIT)
-
-Copyright (c) 2015 Frédéric Camblor http://www.4sh.fr
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without restriction,
-including without limitation the rights to use, copy, modify, merge,
-publish, distribute, sublicense, and/or sell copies of the Software,
-and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-    -->
     <head>
         <meta charset="utf-8">
         <title>MySQL Slow Query Log Visualizer</title>
 
-        <!-- base -->
+        <link rel="stylesheet" href="css/visualize.css">
+        <link rel="stylesheet" href="css/visualize-dark.css">
         <link rel="stylesheet" href="css/style.css">
-        <script src="js/script.js"></script>
 
         <!-- visualizer -->
         <!--<script type="text/javascript" src="js/enhance.js"></script>-->
-        <script type="text/javascript" src="js/excanvas.js"></script>
-        <script type="text/javascript" src="bower_components/jquery-3.7.1.min.js"></script>
-        <script type="text/javascript" src="bower_components/chartjs/chart.umd.js"></script>
-        <script type="text/javascript" src="bower_components/lodash.js"></script>
-        <script type="text/javascript" src="bower_components/clipboard/clipboard.min.js"></script>
-        <link rel="stylesheet" href="css/visualize.css">
-        <link rel="stylesheet" href="css/visualize-dark.css">
-
-        <!-- list -->
+        <script src="js/script.js"></script>
+        <script src="js/excanvas.js"></script>
+        <script src="bower_components/jquery-3.7.1.min.js"></script>
+        <script src="bower_components/chartjs/chart.umd.js"></script>
+        <script src="bower_components/lodash.js"></script>
+        <script src="bower_components/clipboard/clipboard.min.js"></script>
         <script src="js/list.js"></script>
-
     </head>
     <body onload="start();">
 
