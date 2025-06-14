@@ -119,7 +119,7 @@ function processLog(logText) {
         // Add Query Strings
         logdata[i].query_string = log_lines.join("\n").split("# Time: ")[0]; // query
         logdata[i].query_with_stripped_where_clauses = stripWhereClauses(logdata[i].query_string);
-        
+
         // Time Stats        
         if (timedata[dayOfWeek][hours] == null) {
             timedata[dayOfWeek][hours] = 0;
@@ -129,14 +129,20 @@ function processLog(logText) {
 
     var dataGroupedByStrippedQueries = _.groupBy(logdata, 'query_with_stripped_where_clauses');
 
-    // Build Buttons
-    var hideShowButtons = '<button class="showBtn" onclick="showQuery(this);">Show</button> <button class="hideBtn" onclick="hideQuery(this);" style="display:none">Hide</button> <button class="copyToClipboardBtn">Copy</button>';
+    
+    // Parse through all records and all their data fields - this does not loop them (this is handled by lodash library _.each() )
     _.each(logdata, function(data) {
-        data.query_string = hideShowButtons+'<span style="display:none"><br/>'+data.query_string+'</span>';
-        data.displayed_query_with_stripped_where_clauses = hideShowButtons+'<span style="display:none"><br/>'+data.query_with_stripped_where_clauses+'</span>';
+        
+        // Build Buttons (this is cheeky, putting html in the logic)
+        var hideShowButtons = '<button class="showBtn" onclick="showQuery(this);">Show</button> <button class="hideBtn" onclick="hideQuery(this);" style="display:none">Hide</button> <button class="copyToClipboardBtn">Copy</button>';
+        data.query_string = hideShowButtons+'<span style="display:none"><br/>'+data.query_string+'</span>';        
+        if(data.query_with_stripped_where_clauses) {                       
+            data.displayed_query_with_stripped_where_clauses = hideShowButtons+'<span style="display:none"><br/>'+data.query_with_stripped_where_clauses+'</span>';
+        }
+
+        // Some sort of sorting by the where clauses
         data.query_pattern_global_occurences = dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length;
     });
-
 
     calculateQueryPatternOccurencesTextOn(logdata);
 
@@ -172,7 +178,12 @@ function hideQuery(node) {
 
 // not present
 function stripWhereClauses(query) {
+
     var indexOfWhere = query.toUpperCase().lastIndexOf("WHERE");
+
+    // If no WHERE clause, return
+    if(indexOfWhere === -1) {return false}
+
     var initialRadical = query.substr(0, indexOfWhere);
 
     var chunkToReplace = query.substr(indexOfWhere);
@@ -189,6 +200,7 @@ function stripWhereClauses(query) {
     chunkToReplace = chunkToReplace.replace(/between\s(?:'[^']*'|"[^"]*"|[^\s]+)\sand\s(?:'[^']*'|"[^"]*"|[^\s]+)/gim, "BETWEEN ? AND ?"); // BETWEEN ... AND ... => BETWEEN ? AND ?
     chunkToReplace = chunkToReplace.replace(/find_in_set\(\s*(?:'[^']*'|"[^"]*"|[^\s]+)/gim, "FIND_IN_SET(?"); // FIND_IN_SET(...) => FIND_IN_SET(?)
 
+    // chunk to replace on no WHERE = " "
     return initialRadical + chunkToReplace;
 }
 
@@ -220,19 +232,19 @@ var TIME_SCALES = {
     minutely: {
         numberOfMillis: 60 * 1000,
         format: function (date) {
-            return _.padLeft(date.getDate(), 2, "0") + "/" + _.padLeft(date.getMonth() + 1, 2, "0") + " " + _.padLeft(date.getHours(), 2, "0") + ":"+ _.padLeft(date.getMinutes(), 2, "0");
+            return _.padStart(date.getDate(), 2, "0") + "/" + _.padStart(date.getMonth() + 1, 2, "0") + " " + _.padStart(date.getHours(), 2, "0") + ":"+ _.padStart(date.getMinutes(), 2, "0");
         }
     }, hourly: {
         numberOfMillis: 3600*1000,
-        format: function(date){ return _.padLeft(date.getDate(), 2, "0")+"/"+ _.padLeft(date.getMonth()+1, 2, "0")+" "+ _.padLeft(date.getHours(), 2, "0")+"h"; }
+        format: function(date){ return _.padStart(date.getDate(), 2, "0")+"/"+ _.padStart(date.getMonth()+1, 2, "0")+" "+ _.padStart(date.getHours(), 2, "0")+"h"; }
 
     }, daily: {
         numberOfMillis: 3600*1000*24,
-        format: function(date){ return _.padLeft(date.getDate(), 2, "0")+"/"+ _.padLeft(date.getMonth()+1, 2, "0"); }
+        format: function(date){ return _.padStart(date.getDate(), 2, "0")+"/"+ _.padStart(date.getMonth()+1, 2, "0"); }
 
     }, weekly: {
         numberOfMillis: 3600*1000*24*7,
-        format: function(date){ return _.padLeft(date.getDate(), 2, "0")+"/"+ _.padLeft(date.getMonth()+1, 2, "0"); }
+        format: function(date){ return _.padStart(date.getDate(), 2, "0")+"/"+ _.padStart(date.getMonth()+1, 2, "0"); }
 
     }
 };
@@ -244,10 +256,17 @@ function createChartFromLogdata(){
     var firstDate = _(logdata).min('dateObj').dateObj;
     var lastDate = _(logdata).max('dateObj').dateObj;
 
-    // Create Chart
-    createChart(logdata, firstDate, lastDate,
-        $("#global_time_scale"), $("#globalChart"), $("#global_chart_queries_count"),
-        'globalGroupedTimescaleData', 'displayedGlobalChart');
+    // Create Chart with this data
+    createChart(
+        logdata,
+        firstDate,
+        lastDate,
+        $("#global_time_scale"),
+        $("#globalChart"),
+        $("#global_chart_queries_count"),
+        'globalGroupedTimescaleData',
+        'displayedGlobalChart'
+    );
 };
 
 // different (much bigger) - create global (and working chart)
@@ -255,8 +274,7 @@ function createChart(data, firstDate, lastDate,
                      $timeScaleSelector, $targetChartCanvas, $queryCountContainer,
                      debugGroupedDataGlobalVariableName, chartGlobalVariableName) {
                         
-    var initialArguments = arguments;
-    debugger;
+    var initialArguments = arguments;    
 
     $timeScaleSelector.off('change');
     $timeScaleSelector.on('change', function(){
@@ -279,7 +297,6 @@ function createChart(data, firstDate, lastDate,
             matchesWith: function(date) { return this.matchesWithLowBound(date) && this.matchesWithHighBound(date); }
         };
     }).value();
-    debugger;
 
     window[debugGroupedDataGlobalVariableName] = _(data).map(function(data){
         return _.extend({}, data, {
@@ -305,11 +322,16 @@ function createChart(data, firstDate, lastDate,
     if(window[chartGlobalVariableName]){
         window[chartGlobalVariableName].chartComponent.destroy();
     }
-    var chart = new Chart(ctx).Line({
-        labels: _.pluck(timeScaleRanges, "label"),
-        datasets: datasets
-    }, {
-        pointHitDetectionRadius: 1
+   
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: _.map(timeScaleRanges, "label"),
+            datasets: datasets
+        },
+        options: {
+            pointHitDetectionRadius: 1
+        }
     });
 
     window[chartGlobalVariableName] = {
@@ -351,7 +373,6 @@ function createChart(data, firstDate, lastDate,
         list.clear();
         var filteredData = filterData(logdata, window.filteringCriteria);
         list.add(filteredData);
-        debugger;
 
         // Create the working chart with filtered data
         createChart(
@@ -361,10 +382,8 @@ function createChart(data, firstDate, lastDate,
             $("#working_time_scale"), $("#workingChart"), $("#working_chart_queries_count"),
             'workingGroupedTimescaleData', 'displayedWorkingChart');
 
-            debugger;
         document.getElementById('working_chart_container').style.display = 'block';
     });
-    debugger;
 
     document.getElementById('global_chart_container').style.display = 'block';
 }
@@ -488,7 +507,6 @@ function donotuse(){
             // Is this the last chunk of the file
         if(latestChunk) {
 
-            debugger;
 
             loadProgress.innerHTML = "Progress : 100%";
 
@@ -511,7 +529,6 @@ function donotuse(){
             readFileChunk(f, currentStartingBytesOffset, currentStartingBytesOffset+CHUNK_SIZE).then(handleFileChunkRead);
         }
     };
-    debugger;
 
     readFileChunk(f, 0, CHUNK_SIZE).then(handleFileChunkRead);
 }*/
