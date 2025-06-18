@@ -10,56 +10,72 @@
 
         <!-- visualizer -->
         <!--<script type="text/javascript" src="js/enhance.js"></script>-->
-        <script src="js/script.js"></script>
-        <script src="js/excanvas.js"></script>
         <script src="bower_components/jquery-3.7.1.min.js"></script>
+        <script src="js/excanvas.js"></script>
         <script src="bower_components/chartjs/chart.umd.js"></script>
         <script src="bower_components/lodash.js"></script>
         <script src="bower_components/clipboard/clipboard.min.js"></script>
         <script src="js/list.js"></script>
+        <script src="js/script.js"></script>
     </head>
-    <body onload="start();">
-
+    <body>
         <h1>MySQL Slow Query Log Visualizer</h1>
-        <em>If you need to process very large files (&gt;500MB), you will have to call Chrome with <strong>--js-flags="--max-old-space-size=5000"</strong> parameter to increase memory allocatable by Chrome to 5GB</em>
+        <div id="information">
+            <em>If you need to process very large files (&gt;500MB), you will have to call Chrome with <strong>--js-flags="--max-old-space-size=5000"</strong> parameter to increase memory allocatable by Chrome to 5GB</em>
+        </div>
+
         <div id="drop_zone">Drop log file here</div>
 
-        <output id="drop_result"></output>
-        <output id="load_progress"></output>
-        <output id="load_result"></output>
+        <div id="log_progress" hidden></div>
+
+        <div id="log_information" hidden>
+            <h2>Log Information</h2>
+            <ul>
+
+                <li id="server_details"></li>
+                <li id="log_information_file"></li>
+                <li id="log_information_entries"></li>
+            </ul>
+         </div>
+
+
+        <output id="log_results"></output>
 
         <!-- Global Chart -->
-        <div id="global_chart_container" class="chart_container" width="100%" style="display: none">
+        <div id="global_chart_container" class="chart_container" style="max-height: 400px; margin-bottom: 40px;" hidden><!-- sort dimensions -->
             <h2>GLOBAL CHART (click twice on graph to define working data)</h2>
-            <span id="global_chart_queries_count"></span><br/>
-            Time scale : <select id="global_time_scale">
-                <option value="minutely">Minutely</option>
-                <option value="hourly" selected>Hourly</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-            </select><br/>
+            <div>Time Scale (Group By) : <select id="global_time_scale">
+                    <option value="minutely">Minutely</option>
+                    <option value="hourly" selected>Hourly</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                </select>
+            </div>
+            <p id="global_chart_queries_count"></p>
             <canvas id="globalChart" class="chart" width="1280px" height="600"></canvas>
         </div>
 
         <br /><br />
 
         <!-- Working Chart -->
-        <div id="working_chart_container" class="chart_container" width="100%" style="display: none">
+        <div id="working_chart_container" class="chart_container" style="max-height: 400px; display: none; margin-bottom: 40px;"><!-- sort dimensions -->
             <h2>WORKING CHART (click twice on graph to define new working data)</h2>
-            <span id="working_chart_queries_count"></span><br/>
-            Time scale : <select id="working_time_scale">
-                <option value="minutely">Minutely</option>
-                <option value="hourly" selected>Hourly</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-            </select><br/>
+            <div>
+                Time Scale (Group By) : <select id="working_time_scale">
+                    <option value="minutely">Minutely</option>
+                    <option value="hourly" selected>Hourly</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                </select>
+            </div>
+            <p id="working_chart_queries_count"></p>
             <canvas id="workingChart" class="chart" width="1280px" height="600"></canvas>
         </div>
 
         <br /><br />
 
         <!-- Table -->
-        <div id="query_results" style="display:none">
+        <div id="query_results" style="display:none"><!-- maybe use disabled-->
             Chart filtering : start=<span id="filterStart"></span>, end=<span id="filterEnd"></span>
             <table id="log_list">
                 <thead class="header">
