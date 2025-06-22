@@ -16,21 +16,28 @@ SELECT /*!40001 SQL_NO_CACHE */ `id`, `name`, `description` FROM `the_records`;
 # Rows_affected: 0  Bytes_sent: 106349125
 use `qwarptest_beta`;
 SET timestamp=1744852832;
-SELECT /*!40001 SQL_NO_CACHE */ `id`, `name`, `description` FROM `the_records`;
+SELECT /*!40001 SQL_NO_CACHE */ `id`, `name`, `description` FROM `the_records`  WHERE `status` = 'working';
+# User@Host: shoulders[shoulders] @ localhost []
+# Thread_id: 10226  Schema: qwarptest_beta  QC_hit: No
+# Query_time: 12.749595  Lock_time: 0.000000  Rows_sent: 1318475  Rows_examined: 1318475
+# Rows_affected: 0  Bytes_sent: 106349125
+use `qwarptest_beta`;
+SET timestamp=1744852832;
+SELECT /*!40001 SQL_NO_CACHE */ `id`, `name`, `description` FROM `the_records`  WHERE `status` = 'deceased';
 # Time: 250418  0:52:05
 # User@Host: shoulders[shoulders] @ localhost []
 # Thread_id: 83458  Schema: qwarptest_alpha  QC_hit: No
 # Query_time: 12.137718  Lock_time: 0.000000  Rows_sent: 1319719  Rows_examined: 1319719
 # Rows_affected: 0  Bytes_sent: 128251171
 SET timestamp=1744933925;
-SELECT /*!40001 SQL_NO_CACHE */ `id`, `name`, `description` FROM `the_records`;
+SELECT /*!40001 SQL_NO_CACHE */ `id`, `birthday`, `address` FROM `the_records`;
 # Time: 250418  1:34:17
 # User@Host: shoulders[shoulders] @ localhost []
 # Thread_id: 83458  Schema: qwarptest_alpha  QC_hit: No
 # Query_time: 20.137718  Lock_time: 0.000000  Rows_sent: 1527215  Rows_examined: 1527215
 # Rows_affected: 0  Bytes_sent: 178252275
 SET timestamp=1744943657;
-SELECT /*!40001 SQL_NO_CACHE */ `id`, `name`, `description` FROM `the_records`;
+SELECT /*!40001 SQL_NO_CACHE */ `id`, `name`, `description` FROM `the_records` WHERE `status` = 'holiday';
 # Time: 250418  15:10:07
 # User@Host: shoulders[shoulders] @ localhost []
 # Thread_id: 72276  Schema: qwarptest_beta  QC_hit: No
@@ -38,10 +45,17 @@ SELECT /*!40001 SQL_NO_CACHE */ `id`, `name`, `description` FROM `the_records`;
 # Rows_affected: 0  Bytes_sent: 16384
 use `qwarptest_beta`;
 SET timestamp=1744985407;
-SELECT * from `chicken_run`;
+SELECT `name`, `value` FROM `chicken_run` WHERE `status` = 'slow';
 # User@Host: shoulders[shoudlers] @ localhost []
 # Thread_id: 72276  Schema: qwarptest_beta  QC_hit: No
 # Query_time: 0.001130  Lock_time: 0.000046  Rows_sent: 72  Rows_examined: 307
 # Rows_affected: 0  Bytes_sent: 0
 SET timestamp=1744985407;
 SELECT `name`, `value` FROM `chicken_run` WHERE `status` = 'fast';
+# User@Host: shoulders[shoudlers] @ localhost []
+# Thread_id: 72276  Schema: qwarptest_beta  QC_hit: No
+# Query_time: 0.001130  Lock_time: 0.000046  Rows_sent: 72  Rows_examined: 307
+# Rows_affected: 0  Bytes_sent: 0
+SET timestamp=1744985407;
+SELECT `name`, `value` FROM `chicken_run` WHERE `status` = 'medium';
+

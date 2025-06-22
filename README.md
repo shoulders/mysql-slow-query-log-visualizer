@@ -28,5 +28,7 @@ mysql-slow-query-log-visualizer
 - Assumes your log file has \n line endings.
 - All log files are kept local as they load into your browser locally, and not into a remote server
 - All data from the logs is now parsed, but not all are used or displayed.
-- I hve tested this script with a MariaDB slow log file.
+- I have tested this script with a MariaDB slow log file.
 - Uses local time and not a time based on the timestamp
+- The filter will return rows that have the search term in any visible field
+- The code has had extensive comments put in it. This allows easy reading of what the code does.
