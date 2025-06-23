@@ -57,6 +57,9 @@ for (var i = 0; i < 7; i++) {
     timedata[i].dayName = dayNames[i];
 }
 
+// Max Number of X-AXIS labels - Labels are only shown if between 1 and Max number defiend here.
+var NB_DISPLAYED_LABELS = 30;   
+
 // Only start when the page is loaded
 $( document ).ready(function() {
     start();
@@ -163,16 +166,53 @@ function processLog(logFileTextBlob) {
     for (var t = 0; t < logAsTimeGroups.length; t++) {
 
         // Grab the TimeGroup's `# Time:` statement
-        local_time = logAsTimeGroups[t].match(/# Time: (.*)\n/)[1]; 
+        var local_time = logAsTimeGroups[t].match(/# Time: (.*)\n/)[1]; 
 
         // Remove the `# Time:` from this record
         logAsTimeGroups[t] = logAsTimeGroups[t].replace(/# Time: .*\n/, '');
 
-        // Generate an ISO date from `# Time:` statement
+        // Generate an ISO 8601 format date from `# Time:` statement TODO: should i qadd the time zone on the end and then remove later to be better correct
+        // (YYYY-MM-DDTHH:mm:ss.sssZ) 
         var date_iso = local_time.match(/([0-9]{2,4})([0-9]{2})([0-9]{2})  ([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);        
         if(date_iso[4].length === 1) {date_iso[4] = '0' + date_iso[4];}   // Add missing 0 onto the hours when needed
-        date_iso = '20' + date_iso[1] + '-' + date_iso[2] + '-' + date_iso[3] + 'T' + date_iso[4] + ':' + date_iso[5] + ':' + date_iso[6];
+        date_iso = '20' + date_iso[1] + '-' + date_iso[2] + '-' + date_iso[3] + 'T' + date_iso[4] + ':' + date_iso[5] + ':' + date_iso[6] + '.000Z';
 
+        // Create Date Object (UTC time)
+        // JavaScript's Date object does not natively support timezones.
+        // It always converts the input (date or timestamp) to UTC (Zulu) time internally.               
+        // How it interprets the input depends on whether a time zone is included in the string.
+        // Adding Z (Zulu/UTC timezone)on the end of the string, date() interprets the dates as UTC time, dropping the Z it interprets dates as local time
+        // When the time zone offset is absent, date-only forms are interpreted as a UTC time and date-time forms are interpreted as a local time.
+        //d = new Date(logAsDataRecords[i].timestamp * 1000); // 1000 milliseconds = 1 second
+        var d = new Date(date_iso);  
+
+        // Extract parts of the date (UTC is forced, as I have inputed explicit dates with Z)
+        
+        var year = d.getFullYear();        
+        var month = (d.getMonth() + 1);         // 0 - 11
+        var day = d.getDate().toString();       // 1 - 31  
+        var hours = d.getHours().toString();    // 0 - 23
+        var mins = d.getMinutes().toString();   // 0 - 29
+        var secs = d.getSeconds().toString();   // 0 - 59
+        var dayOfWeek = d.getDay();             // 0 - 6  (Sunday --> Saturday)
+
+        // TODO: I am not using this for display, so is this needed
+        // Add in missing preceeding 0, when needed, to enforce double digits (00-00-00 00:00) TODO: could use padStart here  _.padStart(date.getDate(), 2, "0")
+       /* month = _.padStart(month, 2, "0");
+        day = _.padStart(day, 2, "0");
+        hours = _.padStart(hours, 2, "0");
+        mins = _.padStart(mins, 2, "0");
+        secs = _.padStart(secs, 2, "0");
+
+        if (month.length === 1) month = "0" + month;   
+        if (day.length === 1) day = "0" + day;        
+        if (hours.length === 1) hours = "0" + hours;        
+        if (mins.length === 1) mins = "0" + mins;
+        if (secs.length === 1) secs = "0" + secs;*/
+
+        // String used for display (YYYY-MM-DDTHH:mm:ss)
+        var dateString = d.toISOString().replace('T', ' ').replace(/\..*$/, '');        
+   
         // Split the time text groups into records into an array by splitting at "# User@Host: "
         var logAsTextRecords = logAsTimeGroups[t].split(/(?=# User@Host: )/);
 
@@ -189,7 +229,7 @@ function processLog(logFileTextBlob) {
             log_entry_lines = log_entry.split("\n");
             
             // Add Local Time
-            logAsDataRecords[i].local_time = local_time;
+            logAsDataRecords[i].time = local_time;
 
             // Add User, DB, Host            
             var thecredentials = log_entry_lines[0].match(/# User@Host: (.*)\[(.*)\] @ (.*) \[\]/);
@@ -204,14 +244,14 @@ function processLog(logFileTextBlob) {
             logAsDataRecords[i].qc_hit = theprocess[3];
 
             // Add Query Stats (Request)
-            query_request_stats = log_entry_lines[2].split(" ");
+            var query_request_stats = log_entry_lines[2].split(" ");
             logAsDataRecords[i].query_duration = query_request_stats[2].trim();
             logAsDataRecords[i].lock_duration = query_request_stats[5].trim();
             logAsDataRecords[i].rows_sent = query_request_stats[8].trim();
             logAsDataRecords[i].rows_examined = query_request_stats[11].trim();
 
             // Add Query Stats (Result) Stats rows_Affected/Bytes_sent
-            query_result_stats = log_entry_lines[3].split(" ");
+            var query_result_stats = log_entry_lines[3].split(" ");
             logAsDataRecords[i].rows_affected = query_result_stats[2].trim();
             logAsDataRecords[i].bytes_sent = query_result_stats[5].trim();
 
@@ -220,8 +260,8 @@ function processLog(logFileTextBlob) {
                 log_entry_lines.shift(); 
             }
 
-            // Timestamp
-            logAsDataRecords[i].timestamp = log_entry_lines[4].match(/SET timestamp=(.*);/)[1];
+            // Timestamp (converted to Javascript syntax with milliseconds)
+            logAsDataRecords[i].timestamp = log_entry_lines[4].match(/SET timestamp=(.*);/)[1]  + '000';
 
             // Add Query String
             logAsDataRecords[i].query_string = log_entry_lines[5];
@@ -231,31 +271,11 @@ function processLog(logFileTextBlob) {
 
 
             // Add Query String stripped of the `WHERE` clauses
-            logAsDataRecords[i].query_with_stripped_where_clauses = stripWhereClauses(logAsDataRecords[i].query_string);            
-
-            // Dates and Times
-            //d = new Date(logAsDataRecords[i].timestamp * 1000); // 1000 milliseconds = 1 second            
-            var d = new Date(date_iso);  // (YYYY-MM-DDTHH:mm:ss.sssZ) - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date 
-
-            // Extract parts of the date
-            var year = d.getFullYear();        
-            var month = (d.getUTCMonth() + 1); // January = 0, February = 1, ...
-            var day = d.getDate().toString();
-            var dayOfWeek = d.getDay();        
-            var hours = d.getHours().toString();
-            var mins = d.getMinutes().toString();
-            var secs = d.getSeconds().toString();
-
-            // Add in missing preceeding 0, when needed, to enforce double digits (00-00-00 00:00)
-            if (month.length === 1) month = "0" + month;   
-            if (day.length === 1) day = "0" + day;        
-            if (hours.length === 1) hours = "0" + hours;        
-            if (mins.length === 1) mins = "0" + mins;
-            if (secs.length === 1) secs = "0" + secs;
+            logAsDataRecords[i].query_with_stripped_where_clauses = stripWhereClauses(logAsDataRecords[i].query_string);     
 
             // Add Date information
             logAsDataRecords[i].dateObj = d;
-            logAsDataRecords[i].date = date_iso.replace('T', ' ');
+            logAsDataRecords[i].date = dateString;
             logAsDataRecords[i].hour = hours;           
 
             // This is adding to a count, the hour of the query against it's weekday (Monday, Tuesday....)
@@ -341,13 +361,12 @@ function calculateQueryPatternOccurencesTextOn(dataItems, target) {
 
     // Add the number of occurances of a record's SQL Query with the `WHERE` clause removed.
     // This takes a record's query and matches it against a group from above, then gets that group's count, then adds that number into the record's data.
-    // This is one for weach record.
+    // This is one for each record.
     _.each(dataItems, function(data) {
         if(target === 'global' || target === 'both') {data.query_pattern_global_occurences = dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length;}        
         if(target === 'filtered' || target === 'both') {data.query_pattern_filtered_occurences = dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length;}        
     });
 }
-
 
 
 //// Table Section ////
@@ -405,30 +424,30 @@ function createChart(
         createChart.apply(null, initialArguments);
     });
 
-    // _.padStart() = pad a string on the left side with a specified character (or space by default) until the string reaches a given length. 
+    
+    // Return X-AXIS segement specifications (Length in milliseconds / Label Format via a function)
+    // _.padStart() = is adding in a "0" when minute/hour/day/week only has 1 character    
     // TODO: This needs tidying and making simpler
-    // format = i think what is display on the axiz
-    var TIME_SCALES = {
-        minutely: {
+    // TODO: maybe use regex to take the string an maye it better?????
+    // format = A stored function that can be called. Returns specifically formated dates/times for the sel;ected segmenet type.    
+    var timeScaleSpecification = {
+        minute: {
             numberOfMillis: 60 * 1000,
-            format: function (date) {
-                return _.padStart(date.getDate(), 2, "0") + "/" + _.padStart(date.getMonth() + 1, 2, "0") + " " + _.padStart(date.getHours(), 2, "0") + ":"+ _.padStart(date.getMinutes(), 2, "0");
-            }
-        }, hourly: {
+            format: function(date) {return _.padStart(date.getDate(), 2, "0") + "/" + _.padStart(date.getMonth() + 1, 2, "0") + " " + _.padStart(date.getHours(), 2, "0") + ":"+ _.padStart(date.getMinutes(), 2, "0");}
+        }, hour: {
             numberOfMillis: 3600*1000,
-            format: function(date){ return _.padStart(date.getDate(), 2, "0")+"/"+ _.padStart(date.getMonth()+1, 2, "0")+" "+ _.padStart(date.getHours(), 2, "0")+"h"; }
-        }, daily: {
+            format: function(date){ return _.padStart(date.getDate(), 2, "0") + "/" + _.padStart(date.getMonth() + 1, 2, "0") + " " + _.padStart(date.getHours(), 2, "0") + "h"; }
+        }, day: {
             numberOfMillis: 3600*1000*24,
-            format: function(date){ return _.padStart(date.getDate(), 2, "0")+"/"+ _.padStart(date.getMonth()+1, 2, "0"); }
-        }, weekly: {
+            format: function(date){ return _.padStart(date.getDate(), 2, "0") + "/" + _.padStart(date.getMonth() + 1, 2, "0"); }
+        }, week: {
             numberOfMillis: 3600*1000*24*7,
-            format: function(date){ return _.padStart(date.getDate(), 2, "0")+"/"+ _.padStart(date.getMonth()+1, 2, "0"); }
+            format: function(date){ return _.padStart(date.getDate(), 2, "0") + "/" + _.padStart(date.getMonth() + 1, 2, "0"); }
         }
-    };debugger;
-    var currentTimeScale = TIME_SCALES[$timeScaleSelector.val()];
+    };
+    var currentTimeScale = timeScaleSpecification[$timeScaleSelector.val()];   
 
-    // Max Number of AXIS labels that can be displayed TODO: should this be at the top of the page  note if more than 30, none are displayed
-    var NB_DISPLAYED_LABELS = 30;   
+
 
     
     // X-AXIS Segements
@@ -466,26 +485,29 @@ function createChart(
     // map() returns a new array, of this data (does this make an array oof the range above, i thought thats what it do)
     // This is taking the newly created range array from above (1,2,3,4,5,.....) and then running them all through this function.
     // (index, itemsIndex, items) are special variables
-    // loop throug all array items, apply the function adn then return a new array.
+    // loop throug all array items, apply the function and then return a new array.
     .map(                  
                 
-        function(index, itemsIndex, items){
- 
-            // Convert the segement number back into timestamp and then a date object
+        function(index, itemsIndex, items){  // FIXME: this will not be using localtime
+
+            var chikc = index;        // this is the current item = 484681
+            var turkey = itemsIndex;  //this is advaced 1 each loop, staring at 0 = 1,2,3,4
+            var bird = items;         // all segements in array as an array = array[]
+
+            // Convert this segement's number back into timestamp and then a date object
             var startingDate = new Date(index * currentTimeScale.numberOfMillis)
 
-            // Add the next segment's start as this segements end. (same translation as above)
+            // Add the next segment's number as this segements end. (same as above)
             var endingDate = new Date((index + 1) * currentTimeScale.numberOfMillis);
-
             
-            // Show labels only if segments is less that `B_DISPLAYED_LABELS` (set above) or there if there is only one segement ???
-            var displayedLabel = (items.length < NB_DISPLAYED_LABELS) || (itemsIndex % (Math.round(items.length/NB_DISPLAYED_LABELS)) === 0);
-            var label = displayedLabel ? currentTimeScale.format(startingDate) : "";
+            // Show labels only if segments is less than or equals `NB_DISPLAYED_LABELS`. One label will always be shown
+            var displayLabel = (items.length <= NB_DISPLAYED_LABELS) || (itemsIndex % (Math.round(items.length/NB_DISPLAYED_LABELS)) === 0);
+            //var label = displayedLabel ? currentTimeScale.format(startingDate) : "";     // TODO: can this now be put directly into the return statement below
 
             return {
-                startingDate: startingDate,    // date object
-                endingDate: endingDate,         // date object
-                label: label,                   // label string
+                startingDate: new Date(index * currentTimeScale.numberOfMillis),     // date object
+                endingDate: new Date((index + 1) * currentTimeScale.numberOfMillis),         // date object
+                label: displayLabel ? currentTimeScale.format(startingDate) : "",                   // label string
                 matchesWithLowBound: function(date) { return startingDate.getTime()<=date.getTime(); },  //??
                 matchesWithHighBound: function(date) { return endingDate.getTime()>date.getTime(); },    //??
                 matchesWith: function(date) { return this.matchesWithLowBound(date) && this.matchesWithHighBound(date); //??
@@ -498,7 +520,7 @@ function createChart(
     // Returns the .map() array
     .value();
 
-
+    // TODO: what does this do
     window[debugGroupedDataGlobalVariableName] = _(data).map(function(data){
         return _.extend({}, data, {
             timeScaleIndex: _.findIndex(timeScaleRanges, function(range){ return range.matchesWith(data.dateObj); })
@@ -588,7 +610,7 @@ function createChart(
         timeScaleRanges: timeScaleRanges
     };
 
-    // Update onscreen -  the current number of queries being displayed
+    // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
     // Enable a click function on the chart
@@ -738,7 +760,7 @@ function updateTimeChart() {
         }
     }
 
-    // Update onscreen - number of results
+    // Update Onscreen - number of results
     $("#search_count").text(count + " results ");
 
     //$('.visualize').trigger('visualizeRefresh');  // can find this anywhere, try again

@@ -24,7 +24,7 @@ mysql-slow-query-log-visualizer
 ## Getting the Slow Log file
 **I will add some basic notes here or maybe on the util itself**
 
-## Notes (temp)
+## Notes (temp/sort)
 - Assumes your log file has \n line endings.
 - All log files are kept local as they load into your browser locally, and not into a remote server
 - All data from the logs is now parsed, but not all are used or displayed.
@@ -32,3 +32,4 @@ mysql-slow-query-log-visualizer
 - Uses local time and not a time based on the timestamp
 - The filter will return rows that have the search term in any visible field
 - The code has had extensive comments put in it. This allows easy reading of what the code does.
+- There is a demo log file you can use to test this script.
