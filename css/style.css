@@ -109,7 +109,28 @@ p.credits
     color: #999;
 }
 
+/** Mine **/
+
 .log_information_title
 {
     color: #ffec00;
+}
+
+.sort-icon {
+      margin-left: 5px;
+      font-size: 12px;
+      cursor: not-allowed;
+      color: yellow;
+    }
+
+.sort-icon::after {
+  content: "▲▼"; /* starting block */
+}
+th.asc .sort-icon::after {
+  color: green;
+  content: "▲"; /* Up arrow for ascending */
+}
+th.desc .sort-icon::after {
+  color: green;
+  content: "▼"; /* Down arrow for descending */
 }

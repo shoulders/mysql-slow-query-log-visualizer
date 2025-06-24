@@ -33,7 +33,6 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
-
 */
 
 //// Setup Section ////
@@ -57,7 +56,7 @@ for (var i = 0; i < 7; i++) {
     timedata[i].dayName = dayNames[i];
 }
 
-// Max Number of X-AXIS labels - Labels are only shown if between 1 and Max number defiend here.
+// Max Number of X-AXIS labels - Labels are only shown if between 1 and Max number defiend here. TODO: make a bette variable name
 var NB_DISPLAYED_LABELS = 30;   
 
 // Only start when the page is loaded
@@ -102,15 +101,19 @@ function handleFileSelect(evt) {
 
             // Update Onscreen - Show file is now being process
             $('#log_progress').html('hidden', false);           
-
+            
             // Process the log and return number of records
-            var NumberOfEntries = processLog(e.target.result);
+            try {
+                var numberOfEntries = processLog(e.target.result);                
+            } catch (error) {
+                console.log(error);
+            }
 
             // Update Onscreen - Show processing is complete   
             $('#log_progress').prop('hidden', true );
             $('#information').prop('hidden', true );   
             $('#log_information').prop('hidden', false );   
-            $('#log_information_entries').html(NumberOfEntries);            
+            $('#log_information_entries').html(numberOfEntries);            
 
             // Change screen from file dropbox, create and display the table         
             try {
@@ -125,6 +128,8 @@ function handleFileSelect(evt) {
             } catch (error) {
                 console.log(error);
             }
+
+            //TODO: make sure i set the time drop down as firefox is ignoreing slected. or remmeberign it. not good for refreshing
 
         }
     };
@@ -178,7 +183,7 @@ function processLog(logFileTextBlob) {
         date_iso = '20' + date_iso[1] + '-' + date_iso[2] + '-' + date_iso[3] + 'T' + date_iso[4] + ':' + date_iso[5] + ':' + date_iso[6] + '.000Z';
 
         // Create Date Object (UTC time)
-        // JavaScript's Date object does not natively support timezones.
+        // JavaScript's Date object does not support timezones.
         // It always converts the input (date or timestamp) to UTC (Zulu) time internally.               
         // How it interprets the input depends on whether a time zone is included in the string.
         // Adding Z (Zulu/UTC timezone)on the end of the string, date() interprets the dates as UTC time, dropping the Z it interprets dates as local time
@@ -297,6 +302,7 @@ function processLog(logFileTextBlob) {
         // Update Onscreen - Progress meter - TODO: This value does not get updated onscreen during loop due to JavaScript limitation
         $('#log_progress').html('Progress : ' + (r / logAsTimeGroups.length) * 100 + '%');
 
+        //TODO: progrss timer
         /*setTimeout(() => {
             console.log("Paused for 1 milisecond seconds");
         }, 1);*/
@@ -429,7 +435,7 @@ function createChart(
     // _.padStart() = is adding in a "0" when minute/hour/day/week only has 1 character    
     // TODO: This needs tidying and making simpler
     // TODO: maybe use regex to take the string an maye it better?????
-    // format = A stored function that can be called. Returns specifically formated dates/times for the sel;ected segmenet type.    
+    // format = A stored function that can be called. Returns specifically formated dates/times for the sel;ected segmenet type.        
     var timeScaleSpecification = {
         minute: {
             numberOfMillis: 60 * 1000,
