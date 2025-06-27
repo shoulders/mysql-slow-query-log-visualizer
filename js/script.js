@@ -366,7 +366,7 @@ function createList()
     // Enable the list
     var options = {
         item: 'log_list_item',
-        maxVisibleItemsCount: 3000
+        maxVisibleItemsCount: 1000
     };    
     list = new List('log_list', options, logAsDataRecords);
     
@@ -585,7 +585,7 @@ function createChart(
                         callback: function(value, index, ticks) {
 
                             // Maximum number of labels to be displayed on the X-AXIS   
-                            let maxDisplayedLabels = 25;                           
+                            let maxDisplayedLabels = 15;                           
 
                             // Show X-AXIS labels, display logic
                             return (
@@ -840,13 +840,14 @@ function updateTimeChart() {
 //// Presentation Section ////
 
 // Reset filtered Results
-function resetFilter() {
-    
+function resetFilter() {    
     filteredData = null;
     document.getElementById('working_chart_container').style.display = 'none';
     document.getElementById('appliedFilter').style.display = 'none';
     $("#filterStart").text('');
-    $("#filterEnd").text('');    
+    $("#filterEnd").text('');
+    $("#global_time_scale").val('hour'); 
+    $("#working_time_scale").val('hour'); 
     createGlobalChart();
 }
 
