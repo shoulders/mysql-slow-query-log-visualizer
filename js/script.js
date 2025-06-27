@@ -558,6 +558,8 @@ function createChart(
                 pointStrokeColor: "#fff",
                 pointHighlightFill: "#fff",
                 pointHighlightStroke: "rgba(220,220,220,1)",
+                barPercentage: 0.95,                     // Spacing between bars
+                categoryPercentage: 0.95,                // Spacing between categories
                 data: chartDatasetData,
             }]
         },
@@ -567,9 +569,6 @@ function createChart(
 
                 // X- AXIS configuration
                 x: {
-                    stacked: false,
-                    barPercentage: 1.0,                     // Removes spacing between bars = no working TODO:
-                    categoryPercentage: 1.0,                // Removes spacing between categories = not working TODO: was needed for bar spacing ?
                     title: {
                         display: true,
                         text: 'Time of Request'             // Label for the x-axis
