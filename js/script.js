@@ -841,11 +841,13 @@ function updateTimeChart() {
 
 // Reset filtered Results
 function resetFilter() {    
-    filteredData = null;
-    document.getElementById('working_chart_container').style.display = 'none';
-    document.getElementById('appliedFilter').style.display = 'none';
+    filteredData = logAsDataRecords;
+    list.clear();
+    list.add(filteredData);
     $("#filterStart").text('');
-    $("#filterEnd").text('');
+    $("#filterEnd").text('');    
+    document.getElementById('appliedFilter').style.display = 'none';
+    document.getElementById('working_chart_container').style.display = 'none';
     $("#global_time_scale").val('hour'); 
     $("#working_time_scale").val('hour'); 
     createGlobalChart();
