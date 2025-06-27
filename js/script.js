@@ -841,9 +841,8 @@ function updateTimeChart() {
 
 // Reset filtered Results
 function resetFilter() {    
-    filteredData = logAsDataRecords;
-    list.clear();
-    list.add(filteredData);
+    filteredData = null;
+    list.clear();    
     $("#filterStart").text('');
     $("#filterEnd").text('');    
     document.getElementById('appliedFilter').style.display = 'none';
