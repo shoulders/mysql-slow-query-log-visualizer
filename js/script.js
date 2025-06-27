@@ -589,11 +589,11 @@ function createChart(
                         display: true,
                         text: 'Requests'                    // Label for the y-axis
                     },
-                    /*ticks: {
-                        stepSize: 1,                        // Customize tick intervals
-                        color: 'blue'                       // Change tick color
+                    ticks: {
+                        stepSize: 1,                        // Ensure integers
+                        //color: 'blue'                     // Change tick color
                     },
-                    grid: {
+                    /*grid: {
                         color: 'rgba(200, 200, 200, 0.5)' // Customize grid line color
                     }*/
                 }
