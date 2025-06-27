@@ -190,13 +190,13 @@ function processLog(logFileTextBlob) {
         var d = new Date(date_iso);
 
         // Extract parts of the date     
-        var year = d.getFullYear();        
-        var month = (d.getMonth() + 1);         // 0 - 11
-        var day = d.getDate().toString();       // 1 - 31
-        var hours = d.getHours().toString();    // 0 - 23
-        var mins = d.getMinutes().toString();   // 0 - 29
-        var secs = d.getSeconds().toString();   // 0 - 59
-        var dayOfWeek = d.getDay();             // 0 - 6  (Sunday --> Saturday)
+        var year = d.getUTCFullYear();        
+        var month = (d.getUTCMonth() + 1);  // 0 - 11
+        var day = d.getUTCDate();           // 1 - 31
+        var hours = d.getUTCHours();        // 0 - 23
+        var mins = d.getUTCMinutes();       // 0 - 29
+        var secs = d.getUTCSeconds();       // 0 - 59
+        var dayOfWeek = d.getUTCDay();      // 0 - 6  (Sunday --> Saturday)
 
         // String used for display (YYYY-MM-DDTHH:mm:ss)
         var dateString = d.toISOString().replace('T', ' ').replace(/\..*$/, '');        
@@ -419,16 +419,16 @@ function createChart(
     var timeScaleSpecification = {
         minute: {
             numberOfMillis: 60 * 1000,
-            format: function(date) {return _.padStart(date.getDate(), 2, "0") + "/" + _.padStart(date.getMonth() + 1, 2, "0") + " " + _.padStart(date.getHours(), 2, "0") + ":"+ _.padStart(date.getMinutes(), 2, "0");}
+            format: function(date) {return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0") + " " + _.padStart(date.getUTCHours(), 2, "0") + ":"+ _.padStart(date.getUTCMinutes(), 2, "0");}
         }, hour: {
             numberOfMillis: 3600*1000,
-            format: function(date){ return _.padStart(date.getDate(), 2, "0") + "/" + _.padStart(date.getMonth() + 1, 2, "0") + " " + _.padStart(date.getHours(), 2, "0") + "h"; }
+            format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0") + " " + _.padStart(date.getUTCHours(), 2, "0") + "h"; }
         }, day: {
             numberOfMillis: 3600*1000*24,
-            format: function(date){ return _.padStart(date.getDate(), 2, "0") + "/" + _.padStart(date.getMonth() + 1, 2, "0"); }
+            format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0"); }
         }, week: {
             numberOfMillis: 3600*1000*24*7,
-            format: function(date){ return _.padStart(date.getDate(), 2, "0") + "/" + _.padStart(date.getMonth() + 1, 2, "0"); }
+            format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0"); }
         }
     };
 
@@ -469,7 +469,7 @@ function createChart(
             function(index, itemsIndex, items){
 
                 // Convert this segement's number back into timestamp and then a date object
-                var startingDate = new Date(index * currentTimeScale.numberOfMillis);  //TODO: should i use Date.UTC()
+                var startingDate = new Date(index * currentTimeScale.numberOfMillis);
 
                 // Add the next segment's number as this segements end. (same logic as above)
                 var endingDate = new Date((index + 1) * currentTimeScale.numberOfMillis);
@@ -488,8 +488,8 @@ function createChart(
                 // This is a time segement object
                 return {
                     // Segement Values
-                    startingDate: new Date(index * currentTimeScale.numberOfMillis),                                            // Date Object - Segment start time
-                    endingDate: new Date((index + 1) * currentTimeScale.numberOfMillis),                                        // Date Object - Next segment start time
+                    startingDate: new Date(index * currentTimeScale.numberOfMillis),                                        // Date Object - Segment start time
+                    endingDate: new Date((index + 1) * currentTimeScale.numberOfMillis),                                    // Date Object - Next segment start time
                     label: displayLabel ? currentTimeScale.format(startingDate) : "",                                           // X-AXIS segment label - in correct format                
                     
                     // Segment Test functions - used to check against dates to discover if they belong in this segement etc...
@@ -688,7 +688,7 @@ function createWorkingChart(evt, chartIdentifier, firstDate, lastDate){
     } else {
 
         // If the start date is greater than the end date, set end to be the same as start (same as double clickling)
-        if(window.filteringCriteria.start > sourceTimeScaleSegment) { window.filteringCriteria.end = window.filteringCriteria.start }
+        if(window.filteringCriteria.start.startingDate > sourceTimeScaleSegment.startingDate) { window.filteringCriteria.end = window.filteringCriteria.start }
 
         // Set end of filtering range (normally)
         else { window.filteringCriteria.end = sourceTimeScaleSegment;}
@@ -788,7 +788,7 @@ function updateTimeChart() {
             var obj = is[i].values();
 
             hours = obj.hour;                    // TODO: later I specify hours, but not day, should i so noth can be called by objec
-            dayOfWeek = obj.dateObj.getDay();
+            dayOfWeek = obj.dateObj.getUTCDay();
             timedata[dayOfWeek][hours]++;
 
             // Increment the record counter
