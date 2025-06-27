@@ -123,6 +123,9 @@ p.credits
       color: yellow;
     }
 
+
+/* list sort icon */
+
 .sort-icon::after {
   content: "▲▼"; /* starting block */
 }

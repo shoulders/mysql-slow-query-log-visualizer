@@ -13,6 +13,7 @@ https://github.com/filamentgroup/jQuery-Visualize
 License (MIT)
 
 Copyright (c) 2011 Geoff Gaudreault http://www.neurofuzzy.net
+Copyright (c) 2025 Jon Brown https://quantumwarp.com/
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -49,15 +50,12 @@ var list;
 // An array to hold time related information
 var timedata = [];
 
-// Weekdays against ther date() reference number.
+// Weekdays against ther date() reference number.  //TODO: sort time
 var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 for (var i = 0; i < 7; i++) {
     timedata[i] = {};
     timedata[i].dayName = dayNames[i];
 }
-
-// Max Number of X-AXIS labels - Labels are only shown if between 1 and Max number defiend here. TODO: make a bette variable name
-var NB_DISPLAYED_LABELS = 30;   
 
 // Only start when the page is loaded
 $( document ).ready(function() {
@@ -71,11 +69,11 @@ function start() {
     dropZone.addEventListener('drop', handleFileSelect, false);  // this is triggered when you drag and drop a file
 }
 
-// ??? is needed TODO:
+// Configure Drag and Drop behaviour
 function handleDragOver(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-    evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy. / A copy of the source item is made at the new location.
+    evt.stopPropagation();                  // Prevents the event from bubbling up to parent elements.
+    evt.preventDefault();                   // Prevents the default behavior (which is usually to not allow dropping). This tells the browser you want to allow a drop.
+    evt.dataTransfer.dropEffect = 'copy';   // Changes the cursor to indicate that a copy will be made if the item is dropped. This visually signals to the user that copying the dragged data (not moving or linking it) is the intended action.
 }
 
 // Upload the file and pass log to processing (Main function)
@@ -129,8 +127,6 @@ function handleFileSelect(evt) {
                 console.log(error);
             }
 
-            //TODO: make sure i set the time drop down as firefox is ignoreing slected. or remmeberign it. not good for refreshing
-
         }
     };
 
@@ -142,7 +138,9 @@ function handleFileSelect(evt) {
 
 }
 
+
 //// Processing Log Section ////
+
 
 // Process the uploaded slow query log, parseout the records
 function processLog(logFileTextBlob) {
@@ -176,7 +174,7 @@ function processLog(logFileTextBlob) {
         // Remove the `# Time:` from this record
         logAsTimeGroups[t] = logAsTimeGroups[t].replace(/# Time: .*\n/, '');
 
-        // Generate an ISO 8601 format date from `# Time:` statement TODO: should i qadd the time zone on the end and then remove later to be better correct
+        // Generate an ISO 8601 format date from `# Time:` statement
         // (YYYY-MM-DDTHH:mm:ss.sssZ) 
         var date_iso = local_time.match(/([0-9]{2,4})([0-9]{2})([0-9]{2})  ([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);        
         if(date_iso[4].length === 1) {date_iso[4] = '0' + date_iso[4];}   // Add missing 0 onto the hours when needed
@@ -186,34 +184,19 @@ function processLog(logFileTextBlob) {
         // JavaScript's Date object does not support timezones.
         // It always converts the input (date or timestamp) to UTC (Zulu) time internally.               
         // How it interprets the input depends on whether a time zone is included in the string.
-        // Adding Z (Zulu/UTC timezone)on the end of the string, date() interprets the dates as UTC time, dropping the Z it interprets dates as local time
+        // Adding Z (Zulu/UTC timezone) on the end of the string, date() interprets the dates as UTC time, dropping the Z it interprets dates as local time
         // When the time zone offset is absent, date-only forms are interpreted as a UTC time and date-time forms are interpreted as a local time.
-        //d = new Date(logAsDataRecords[i].timestamp * 1000); // 1000 milliseconds = 1 second
-        var d = new Date(date_iso);  
+        // d = new Date(logAsDataRecords[i].timestamp * 1000); // 1000 milliseconds = 1 second
+        var d = new Date(date_iso);
 
-        // Extract parts of the date (UTC is forced, as I have inputed explicit dates with Z)
-        
+        // Extract parts of the date     
         var year = d.getFullYear();        
         var month = (d.getMonth() + 1);         // 0 - 11
-        var day = d.getDate().toString();       // 1 - 31  
+        var day = d.getDate().toString();       // 1 - 31
         var hours = d.getHours().toString();    // 0 - 23
         var mins = d.getMinutes().toString();   // 0 - 29
         var secs = d.getSeconds().toString();   // 0 - 59
         var dayOfWeek = d.getDay();             // 0 - 6  (Sunday --> Saturday)
-
-        // TODO: I am not using this for display, so is this needed
-        // Add in missing preceeding 0, when needed, to enforce double digits (00-00-00 00:00) TODO: could use padStart here  _.padStart(date.getDate(), 2, "0")
-       /* month = _.padStart(month, 2, "0");
-        day = _.padStart(day, 2, "0");
-        hours = _.padStart(hours, 2, "0");
-        mins = _.padStart(mins, 2, "0");
-        secs = _.padStart(secs, 2, "0");
-
-        if (month.length === 1) month = "0" + month;   
-        if (day.length === 1) day = "0" + day;        
-        if (hours.length === 1) hours = "0" + hours;        
-        if (mins.length === 1) mins = "0" + mins;
-        if (secs.length === 1) secs = "0" + secs;*/
 
         // String used for display (YYYY-MM-DDTHH:mm:ss)
         var dateString = d.toISOString().replace('T', ' ').replace(/\..*$/, '');        
@@ -284,7 +267,7 @@ function processLog(logFileTextBlob) {
             logAsDataRecords[i].hour = hours;           
 
             // This is adding to a count, the hour of the query against it's weekday (Monday, Tuesday....)
-            timedata[dayOfWeek][hours] ?? 0;  // TODO: I could fully build the array at the top in timedata, this fixes this. updating the loop a the top is probably more logical. but slightly differnt array name, might be failing from previous programmer that he never buil the array at the top
+            timedata[dayOfWeek][hours] ?? 0; //TODO: time
             timedata[dayOfWeek][hours]++;
 
             // Transform some values into buttons
@@ -302,15 +285,13 @@ function processLog(logFileTextBlob) {
         // Update Onscreen - Progress meter - TODO: This value does not get updated onscreen during loop due to JavaScript limitation
         $('#log_progress').html('Progress : ' + (r / logAsTimeGroups.length) * 100 + '%');
 
-        //TODO: progrss timer
+        //TODO: progress timer
         /*setTimeout(() => {
             console.log("Paused for 1 milisecond seconds");
         }, 1);*/
 
-        // Upload progress by bytes
+        // Upload progress by bytes //TODO:
         //$('log_progress').html('Progress : '+Math.round(currentStartingBytesOffset*100/f.size) + '%';
-
-
 
     }
 
@@ -342,6 +323,7 @@ function stripWhereClauses(query) {
     var initialRadical = query.substr(0, indexOfWhere);
 
     var chunkToReplace = query.substr(indexOfWhere);
+
     // First, stripping slashes / carriage returns
     chunkToReplace = chunkToReplace.replace(/[\r\n\s]+/gim, " ");
 
@@ -416,26 +398,24 @@ function createChart(
     $timeScaleSelector,
     $chartCanvas,
     $queryCountContainer,
-    debugGroupedDataGlobalVariableName,
-    chartIdentifier
+    groupedDataVariableName,
+    chartIdentifier              // This chart identifier is created dynamically by Chart.js
 )
 {   
+    // `arguments` is a special variable that holds the calling arguments of this function
+    var initialArguments = arguments;
+
     // When `Time Scale (Group By) :` dropdown is changed
     $timeScaleSelector.off('change');
     $timeScaleSelector.on('change', function(){
-        // `arguments` is a special variable that holds the calling arguments of this function
-        var initialArguments = arguments;
-
         // Re-calling createChart() with same arguments
         createChart.apply(null, initialArguments);
     });
-
     
-    // Return X-AXIS segement specifications (Length in milliseconds / Label Format via a function)
-    // _.padStart() = is adding in a "0" when minute/hour/day/week only has 1 character    
-    // TODO: This needs tidying and making simpler
-    // TODO: maybe use regex to take the string an maye it better?????
-    // format = A stored function that can be called. Returns specifically formated dates/times for the sel;ected segmenet type.        
+    // Return X-AXIS time segment specifications (Length in milliseconds / Label Format via a function)
+    //   _.padStart() = is adding in a "0" when minute/hour/day/week only has 1 character    
+    //   numberOfMillis = number of millieseconds in this segment type
+    //   format = A stored function that returns a date text string, from the supplied date, for this segment type. Is used for labels on the X_AXIS.
     var timeScaleSpecification = {
         minute: {
             numberOfMillis: 60 * 1000,
@@ -451,108 +431,125 @@ function createChart(
             format: function(date){ return _.padStart(date.getDate(), 2, "0") + "/" + _.padStart(date.getMonth() + 1, 2, "0"); }
         }
     };
-    var currentTimeScale = timeScaleSpecification[$timeScaleSelector.val()];   
 
+    // Sets the segment type based on the users dropdown selection
+    var currentTimeScale = timeScaleSpecification[$timeScaleSelector.val()];
 
+    // X-AXIS Segements - Create an array which holds all of the calculated time segements, their start time, end time, X-AXIS label and test functions
+    var timeScaleSegments = _(
 
-    
-    // X-AXIS Segements
-    var timeScaleRanges = _(
+        // This `_.range()` section, converts a start and end date into their timestamps, then divides them by the selected segment's length in milliseconds (timestamp).
+        //      These new values are the segment number as calculated from the epoch.
+        //      These start and end segment numbers are now put into the _.range() function to get the range of segment numbers from the given start value up to, but not including the end value.
+        //      Returned as an array with only integers as values.
+        //      Example  [] = [20194, 20195, 20196]
+        // .range()
+        //      Creates an array of numbers (positive and/or negative) progressing from start up to, but not including the last integer.
+        //      from lodash
+        _.range(
 
-        // jon: (endtimestamp - starttimestamp) / currentTimeScale.numberOfMillis
-
-        //TODO: the whole section - notes and make neater
-
-
-        // Creates an array of numbers (positive and/or negative) progressing from start up to, but not including, end. 
-        //         a segment doe not start at the end, but the at the pneumultimate location
-        // The specifiers (not array items) below, are the start and end of the range
-        // the .range() will return all of the integers between  the start and end date (after they have been converted in to segment numbers)
-        //  example  [] = [20194, 20195, 20196]
-        _.range(      
-
-            // These are breaking up the start and end date by the selected segment length (eg day, week)
-            // The numbers used here are timestamps
-            //eg sgement = week --> the will return date's weeks number from the epoch
-
-            // Math.Floor() = Round result down to nearest integer - the number of days might not exactly match the number of days in a segement sizxe leading to decimals,
-            // = number of segments from the epoch
-            // math.floor() ensures we use the timestamp of the start of the segement this date appears (in i.e. a complete segment), by rounding down to nearest integer.
-            // math.floor is needed because: ........................
-            Math.floor((firstDate.getTime())/(currentTimeScale.numberOfMillis)),    
-
-            // = number of segments from the epoch         
-            // math.floor() is not needed because: the beginning of the segment is always included and .range() only returns integers
+            // Math.Floor()
+            //      Round result down to nearest integer
+            // math.floor() is needed because:
+            //      The number of milliseconds might not exactly match the number of millieseconds in a segment size leading to decimals.
+            //      The number of milliseconds might not exactly intersect the boundry of a segment leading to decimals.
+            //      Ensures we use the timestamp at the start of the segement leading to correctly addressing the segements at their start point.
+            Math.floor((firstDate.getTime())/(currentTimeScale.numberOfMillis)),
+            
+            // math.floor() is not needed because: the beginning of the segment is always included and _.range() only returns integers
             (lastDate.getTime())/(currentTimeScale.numberOfMillis)
 
+        ))
+
+        // This takes the range array from above [20194, 20195, 20196], runs all of the values them all through the function specified, and creates a new array.
+        // .map()
+        //      creates a new array, of this data 
+        //      (index, itemsIndex, items) are special variables    
+        .map(                        
+            function(index, itemsIndex, items){
+
+                // Convert this segement's number back into timestamp and then a date object
+                var startingDate = new Date(index * currentTimeScale.numberOfMillis);  //TODO: should i use Date.UTC()
+
+                // Add the next segment's number as this segements end. (same logic as above)
+                var endingDate = new Date((index + 1) * currentTimeScale.numberOfMillis);
+
+                // Maximum number of labels to be displayed
+                var MAX_DISPLAYED_LABELS = 20;
+
+                // Show labels logic:
+                //      If the total number of items (time segments) is less than or equal to the label limit (MAX_DISPLAYED_LABELS), then display all labels.
+                //      or
+                //      If the total number of items (time segments) is more than the label limit (MAX_DISPLAYED_LABELS), this line distributes the labels evenly (upto the max number of labels)
+                //          Math.round(items.length / MAX_DISPLAYED_LABELS): Determines a "step size" — how often to display a label.
+                //          itemsIndex % stepSize === 0: Only display labels at these regular intervals.
+                var displayLabel = (items.length <= MAX_DISPLAYED_LABELS) || (itemsIndex % (Math.round(items.length/MAX_DISPLAYED_LABELS)) === 0);            
+
+                // This is a time segement object
+                return {
+                    // Segement Values
+                    startingDate: new Date(index * currentTimeScale.numberOfMillis),                                            // Date Object - Segment start time
+                    endingDate: new Date((index + 1) * currentTimeScale.numberOfMillis),                                        // Date Object - Next segment start time
+                    label: displayLabel ? currentTimeScale.format(startingDate) : "",                                           // X-AXIS segment label - in correct format                
+                    
+                    // Segment Test functions - used to check against dates to discover if they belong in this segement etc...
+                    matchesWithLowBound: function(date) { return date.getTime() >= startingDate.getTime(); },                   // Returns function: Returns Boolean, getTime() returns timestamps, is the supplied date after (or including) the segement's starting time
+                    matchesWithHighBound: function(date) { return date.getTime() < endingDate.getTime(); },                     // Returns function: Returns Boolean, getTime() returns timestamps, is the supplied date before the segements' end time
+                    matchesWith: function(date) { return this.matchesWithLowBound(date) && this.matchesWithHighBound(date); }   // Is the supplied date within this segments time range
+
+                };
+            }
         )
-    )
 
-    // map() returns a new array, of this data (does this make an array oof the range above, i thought thats what it do)
-    // This is taking the newly created range array from above (1,2,3,4,5,.....) and then running them all through this function.
-    // (index, itemsIndex, items) are special variables
-    // loop throug all array items, apply the function and then return a new array.
-    .map(                  
-                
-        function(index, itemsIndex, items){  // FIXME: this will not be using localtime
+        // Returns the .map() array  ([0],[1],[2],[3],[4],[5],.....)
+        .value();
 
-            var chikc = index;        // this is the current item = 484681
-            var turkey = itemsIndex;  //this is advaced 1 each loop, staring at 0 = 1,2,3,4
-            var bird = items;         // all segements in array as an array = array[]
+    // Group records by time segment (timeScaleSegments): copy`data` into new array, add segment index to records, then group records by index (timeScaleRange) (returns object)
+    window[groupedDataVariableName] = 
 
-            // Convert this segement's number back into timestamp and then a date object
-            var startingDate = new Date(index * currentTimeScale.numberOfMillis)
+        // Loop through all `data` records running the function() on each of them. (Returns a new array)
+        _(data).map(function(data){
 
-            // Add the next segment's number as this segements end. (same as above)
-            var endingDate = new Date((index + 1) * currentTimeScale.numberOfMillis);
-            
-            // Show labels only if segments is less than or equals `NB_DISPLAYED_LABELS`. One label will always be shown
-            var displayLabel = (items.length <= NB_DISPLAYED_LABELS) || (itemsIndex % (Math.round(items.length/NB_DISPLAYED_LABELS)) === 0);
-            //var label = displayedLabel ? currentTimeScale.format(startingDate) : "";     // TODO: can this now be put directly into the return statement below
+            // Adds `timeScaleIndex` key/value (created below) to the current `data` record
+            return _.extend({}, data, {
 
-            return {
-                startingDate: new Date(index * currentTimeScale.numberOfMillis),     // date object
-                endingDate: new Date((index + 1) * currentTimeScale.numberOfMillis),         // date object
-                label: displayLabel ? currentTimeScale.format(startingDate) : "",                   // label string
-                matchesWithLowBound: function(date) { return startingDate.getTime()<=date.getTime(); },  //??
-                matchesWithHighBound: function(date) { return endingDate.getTime()>date.getTime(); },    //??
-                matchesWith: function(date) { return this.matchesWithLowBound(date) && this.matchesWithHighBound(date); //??
+                    // Find the X-AXIS time segment the current `data` record belongs to.
+                    // Loop through `timeScaleSegments` (X-AXIS time segments), testing with the function() to see if the current `data` record's date is within that segment.
+                    // When the first match is found, _.findIndex() will return the array index value (segment number)
+                    timeScaleIndex: _.findIndex(timeScaleSegments, function(index, itemsIndex, items){ 
+                        
+                        // Is the current `data` record's date within this time segment
+                        return index.matchesWith(data.dateObj);
+                    })
 
                 }
-            };
-        }
-    )
+            );
 
-    // Returns the .map() array
-    .value();
+        })
+    
+        // This groups by 'timeScaleIndex'
+        .groupBy('timeScaleIndex')
 
-    // TODO: what does this do
-    window[debugGroupedDataGlobalVariableName] = _(data).map(function(data){
-        return _.extend({}, data, {
-            timeScaleIndex: _.findIndex(timeScaleRanges, function(range){ return range.matchesWith(data.dateObj); })
-        });
-    }).groupBy('timeScaleIndex').value();
+        // Return the value (object)
+        .value();
 
-    // Count the number of occurences per time segment (only used below)
-    var countsPerTimeScaleIndex = _(window[debugGroupedDataGlobalVariableName]).mapValues('length').value();
+    // Build an array of time segments with, a count of records per time segment (only segments with records will get a key/pair value, i.e. some indexes will be missing)
+    var countsPerTimeScaleIndex = _(window[groupedDataVariableName]).mapValues('length').value();
 
-    // TODO: better name for variable  `datasetsData`
-    // Using `timeScaleIndex`, map the count of Queries per time segement, to the time segment
-    var datasetsData = _(timeScaleRanges).map(function(timeScaleRange, timeScaleIndex){ return countsPerTimeScaleIndex[timeScaleIndex] || 0; }).value();
+    // Build the chart's dataset - Using `timeScaleSegments` create a new array, mapping the count of records against time segment. (this also adds in the missing array indexes)
+    var chartDatasetData = _(timeScaleSegments).map(function(timeScaleRange, timeScaleIndex){ return countsPerTimeScaleIndex[timeScaleIndex] || 0; }).value();
 
     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$("#globalChart")`  ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
     // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js)
-    if(window[chartIdentifier]){        
-        window[chartIdentifier].chartComponent.destroy();;
-    }
+    if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
 
     // Instanciate Chart Class
     var chart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: _.map(timeScaleRanges, "label"),
+            labels: _.map(timeScaleSegments, 'label'),
             datasets: [{
                 label: "Number of Queries",
                 fillColor: "rgba(220,220,220,0.2)",
@@ -561,7 +558,7 @@ function createChart(
                 pointStrokeColor: "#fff",
                 pointHighlightFill: "#fff",
                 pointHighlightStroke: "rgba(220,220,220,1)",
-                data: datasetsData,
+                data: chartDatasetData,
             }]
         },
         options: {
@@ -604,29 +601,23 @@ function createChart(
         }
     });
 
-    // TODO: whats is this for??
+    // Push the Chart object to the DOM
     window[chartIdentifier] = {
-        chartComponent: chart,
-        // Hack to be able to retrieve index from x coordinate
-        datasetIndexFromPointResolvers: _.map(chart.datasets, function(dataset) {
-            return {
-                indexFromPoint: _(dataset.points).pluck('x').invert().value()
-            };
-        }),
-        timeScaleRanges: timeScaleRanges
+        chartComponent:
+            chart,
+            timeScaleSegments: timeScaleSegments
     };
 
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
-    // Enable a click function on the chart
+    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the gloabl and working chart.
     $chartCanvas.off('click');
-    $chartCanvas.on('click', function(evt) {
-        createWorkingChart(evt, chartIdentifier, firstDate, lastDate);
-    });
+    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, chartIdentifier, firstDate, lastDate); });
 
-    // Show the chart
+    // Show the Chart
     document.getElementById('global_chart_container').style.display = 'block';
+
 }
 
 // Create the GLOBAL chart (using logAsDataRecords as source data)
@@ -645,45 +636,79 @@ function createGlobalChart()
         $("#globalChart"),
         $("#global_chart_queries_count"),
         'globalGroupedTimescaleData',
-        'displayedGlobalChart'     // This chart identifier is created dynamically by Chart.js
+        'displayedGlobalChart'
     );
 
 };
 
-// Create WORKING chart (with filtered data)
+// Create WORKING chart (with filtered data) (from a click event)
 function createWorkingChart(evt, chartIdentifier, firstDate, lastDate){
+
+
+    //// Get Data from Global Chart (via the click event) ////
+    
 
     var chartInfos = window[chartIdentifier];
 
-    // old - var activePoints = chartInfos.chartComponent.getPointsAtEvent(evt);
+    // `getElementsAtEventForMode` is a Chart.js method to find data points on the chart that are nearest to the event evt (e.g. a mouse click or hover).
     var activePoints = chartInfos.chartComponent.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-    var medianPoint = activePoints[Math.floor(activePoints.length/2)];
-    if(!medianPoint) { return; }
-    
-    //var targetTimeScaleRange = chartInfos.timeScaleRanges[chartInfos.datasetIndexFromPointResolvers[0].indexFromPoint[medianPoint.x]];
-    var index = medianPoint.index;
-    var targetTimeScaleRange = chartInfos.timeScaleRanges[index];
 
-    // Ensuring filtering criteria is defined
+    // This picks the middle point from the array of active (nearest) points.
+    var medianPoint = activePoints[Math.floor(activePoints.length/2)];
+
+    // If no median point is found, exit chart creation
+    if(!medianPoint) { return; }  
+
+    // Get the median index, which we will use for the source segment's index
+    var index = medianPoint.index;
+
+    // Get the source segment's object/array from the chartInfos object.
+    var sourceTimeScaleSegment = chartInfos.timeScaleSegments[index];
+
+
+    //// Filter Data ////
+
+    
+    // Ensuring filtering criteria is defined on the window object (if not set, then first click will be implied)
     window.filteringCriteria = window.filteringCriteria || { even: 0, start: null, end: null };
 
-    window.filteringCriteria.even = (window.filteringCriteria.even + 1)%2;
+    // Determine whether it's the "start date" (first click) or the "end date" (second click).
+    window.filteringCriteria.even = (window.filteringCriteria.even + 1) % 2;
+
+    // On the first click, set the start of the date range (working chart)
     if(window.filteringCriteria.even === 1){
-        window.filteringCriteria.start = targetTimeScaleRange;
-        $("#filterStart").text(window.filteringCriteria.start.startingDate.toString());
+
+        // Set start of filtering range
+        window.filteringCriteria.start = sourceTimeScaleSegment;
+
+        // Update Onscreen - The end date below the working chart
+        $("#filterStart").text(window.filteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
+    
+    // On the second click, set the end of the date range (working chart)
     } else {
-        window.filteringCriteria.end = targetTimeScaleRange;
-        $("#filterEnd").text(window.filteringCriteria.end.endingDate.toString());
+
+        // If the start date is greater than the end date, set end to be the same as start (same as double clickling)
+        if(window.filteringCriteria.start > sourceTimeScaleSegment) { window.filteringCriteria.end = window.filteringCriteria.start }
+
+        // Set end of filtering range (normally)
+        else { window.filteringCriteria.end = sourceTimeScaleSegment;}
+
+        // Update Onscreen - The end date below the working chart
+        $("#filterEnd").text(window.filteringCriteria.end.endingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
     }
 
-    // Get the filtered records
-    filterData(logAsDataRecords, window.filteringCriteria);
+    // Build the filtered records
+    filterData(window.filteringCriteria);
+
+
+    //// Output the filtered Data (to the table and working chart) ////
+
 
     // Clear and Update the table/list with the filtered records
     list.clear();   
     list.add(filteredData);
 
-    // Create the working chart with the filtered data
+    // Create/update the working chart with the filtered data
     createChart(
         filteredData,
         window.filteringCriteria.start ? window.filteringCriteria.start.startingDate : firstDate,
@@ -692,10 +717,10 @@ function createWorkingChart(evt, chartIdentifier, firstDate, lastDate){
         $("#workingChart"),
         $("#working_chart_queries_count"),
         'workingGroupedTimescaleData',
-        'displayedWorkingChart'   // This chart identifier is created dynamically by Chart.js
+        'displayedWorkingChart'
     );
 
-    // Show the chart
+    // Update Onscreen - Show the chart
     document.getElementById('working_chart_container').style.display = 'block';
 
 }
@@ -704,12 +729,14 @@ function createWorkingChart(evt, chartIdentifier, firstDate, lastDate){
 //// Update and Filter section ////
 
 
-// Filter Data (by Datetime)
-function filterData(data, criteria) {
+// Build Filtered Data, using Chart filter criteria (Date) (called from working chart)
+function filterData(criteria) {
 
+    // filter the data if a criteria has been specified, if not, just copy logAsDataRecords into filteredData
     filteredData = (criteria.start || criteria.end) ?
 
-        _.filter(data, function(item){
+        // Return a new array with records that are within the specified criteria
+        _.filter(logAsDataRecords, function(item){
             if(criteria.start && !criteria.start.matchesWithLowBound(item.dateObj)) {
                 return false;
             }
@@ -719,7 +746,7 @@ function filterData(data, criteria) {
             return true;
         })
 
-        : data;
+        : logAsDataRecords;
 
     // Update the Query Pattern (WHERE clause removed) occurances for filtered records
     calculateQueryPatternOccurencesTextOn(filteredData, 'filtered');
@@ -727,7 +754,10 @@ function filterData(data, criteria) {
     return;
 }
 
+// TODO: what is this for?
+// TODO: not used anywhere
 // Filter the table entries and update the screen
+// TODO: explain this more, does it do anything, is this something to do with week days?
 function updateTimeChart() {
     
     var count = 0;
@@ -769,11 +799,6 @@ function updateTimeChart() {
     // Update Onscreen - number of results
     $("#search_count").text(count + " results ");
 
-    //$('.visualize').trigger('visualizeRefresh');  // can find this anywhere, try again
-    //window[WorkingChart].chartComponent.update(); // Refresh the working chart
-    //window[workingChart].chartComponent.update();
-    //window[WorkingChart].update();
-    //window[workingChart].update();
 }
 
 

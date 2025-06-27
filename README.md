@@ -25,7 +25,7 @@ mysql-slow-query-log-visualizer
 **I will add some basic notes here or maybe on the util itself**
 
 ## Notes (temp/sort)
-- Assumes your log file has \n line endings.
+- Assumes your log file has `\n` line endings.
 - All log files are kept local as they load into your browser locally, and not into a remote server
 - All data from the logs is now parsed, but not all are used or displayed.
 - I have tested this script with a MariaDB slow log file.
@@ -33,3 +33,5 @@ mysql-slow-query-log-visualizer
 - The filter will return rows that have the search term in any visible field
 - The code has had extensive comments put in it. This allows easy reading of what the code does.
 - There is a demo log file you can use to test this script.
+- you can set a date range by clicking once on one bar, and then a later one and the working graph will show the records within that date range.
+- if you double click a bar it will show only the results of that segment in the working chart.
