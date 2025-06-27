@@ -715,7 +715,8 @@ function createWorkingChart(evt, chartIdentifier, firstDate, lastDate){
         window.filteringCriteria.start = sourceTimeScaleSegment;
 
         // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
-        $("#filterStart").text(window.filteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
+        $("#filterStart").text(window.filteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, '')); 
+        $("#filterEnd").text(''); 
     
     // On the second click, set the end of the date range (working chart)
     } else {
@@ -754,6 +755,7 @@ function createWorkingChart(evt, chartIdentifier, firstDate, lastDate){
     );
 
     // Update Onscreen - Show the chart
+    document.getElementById('appliedFilter').style.display = 'block';
     document.getElementById('working_chart_container').style.display = 'block';
 
 }
@@ -837,6 +839,16 @@ function updateTimeChart() {
 
 //// Presentation Section ////
 
+// Reset filtered Results
+function resetFilter() {
+    
+    filteredData = null;
+    document.getElementById('working_chart_container').style.display = 'none';
+    document.getElementById('appliedFilter').style.display = 'none';
+    $("#filterStart").text('');
+    $("#filterEnd").text('');    
+    createGlobalChart();
+}
 
 // Query Button - Show
 function showQuery(node) {

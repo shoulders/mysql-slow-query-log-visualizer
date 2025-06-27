@@ -38,8 +38,10 @@
             </ul>
         </div>
 
+
         <!-- Global Chart -->
         <div id="global_chart_container" class="chart_container" style="max-height: 400px; margin-bottom: 40px;" hidden><!-- sort dimensions -->
+            <div><button id="resetFilter" onclick="resetFilter();">Reset Filter</button></div>
             <h2>GLOBAL CHART (click twice on graph to define working data)</h2>
             <div>Time Scale (Group By) : <select id="global_time_scale">
                     <option value="month">Month</option>
@@ -69,13 +71,13 @@
             </div>
             <p id="working_chart_queries_count"></p>
             <canvas id="workingChart" class="chart" width="1280px" height="600"></canvas>
+
         </div>
 
-        <br /><br />
+        <div id="appliedFilter"style="display: none; height: 100px;">Chart filtering : start = <span id="filterStart"></span>, end = <span id="filterEnd"></span></div>
 
         <!-- Table -->
         <div id="query_results" style="display:none"><!-- maybe use disabled-->
-            <p>Chart filtering : start = <span id="filterStart"></span>, end = <span id="filterEnd"></span></p>
             <table id="log_list">
                 <thead class="header">
                     <tr id="search">
