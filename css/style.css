@@ -116,15 +116,16 @@ p.credits
     color: #ffec00;
 }
 
+/* list sort icon */
+
 .sort-icon {
       margin-left: 5px;
       font-size: 12px;
       cursor: not-allowed;
       color: yellow;
+      float: right;
+      padding-right: 10px;
     }
-
-
-/* list sort icon */
 
 .sort-icon::after {
   content: "▲▼"; /* starting block */

@@ -474,23 +474,13 @@ function createChart(
                 // Add the next segment's number as this segements end. (same logic as above)
                 var endingDate = new Date((index + 1) * currentTimeScale.numberOfMillis);
 
-                // Maximum number of labels to be displayed
-                var MAX_DISPLAYED_LABELS = 20;
-
-                // Show labels logic:
-                //      If the total number of items (time segments) is less than or equal to the label limit (MAX_DISPLAYED_LABELS), then display all labels.
-                //      or
-                //      If the total number of items (time segments) is more than the label limit (MAX_DISPLAYED_LABELS), this line distributes the labels evenly (upto the max number of labels)
-                //          Math.round(items.length / MAX_DISPLAYED_LABELS): Determines a "step size" — how often to display a label.
-                //          itemsIndex % stepSize === 0: Only display labels at these regular intervals.
-                var displayLabel = (items.length <= MAX_DISPLAYED_LABELS) || (itemsIndex % (Math.round(items.length/MAX_DISPLAYED_LABELS)) === 0);            
-
                 // This is a time segement object
                 return {
+
                     // Segement Values
-                    startingDate: new Date(index * currentTimeScale.numberOfMillis),                                        // Date Object - Segment start time
-                    endingDate: new Date((index + 1) * currentTimeScale.numberOfMillis),                                    // Date Object - Next segment start time
-                    label: displayLabel ? currentTimeScale.format(startingDate) : "",                                           // X-AXIS segment label - in correct format                
+                    startingDate: new Date(index * currentTimeScale.numberOfMillis),        // Date Object - Segment start time
+                    endingDate: new Date((index + 1) * currentTimeScale.numberOfMillis),    // Date Object - Next segment start time
+                    labels: currentTimeScale.format(startingDate),                          // Get the date formmatted correctly for this segment type                            
                     
                     // Segment Test functions - used to check against dates to discover if they belong in this segement etc...
                     matchesWithLowBound: function(date) { return date.getTime() >= startingDate.getTime(); },                   // Returns function: Returns Boolean, getTime() returns timestamps, is the supplied date after (or including) the segement's starting time
@@ -536,20 +526,20 @@ function createChart(
     // Build an array of time segments with, a count of records per time segment (only segments with records will get a key/pair value, i.e. some indexes will be missing)
     var countsPerTimeScaleIndex = _(window[groupedDataVariableName]).mapValues('length').value();
 
-    // Build the chart's dataset - Using `timeScaleSegments` create a new array, mapping the count of records against time segment. (this also adds in the missing array indexes)
+    // Build the chart's dataset (records per segment in an array) - Using `timeScaleSegments` create a new array, mapping the count of records against time segment. (this also adds in the missing array indexes)
     var chartDatasetData = _(timeScaleSegments).map(function(timeScaleRange, timeScaleIndex){ return countsPerTimeScaleIndex[timeScaleIndex] || 0; }).value();
-
+    
     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$("#globalChart")`  ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
     // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js)
     if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
-
+    
     // Instanciate Chart Class
     var chart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: _.map(timeScaleSegments, 'label'),
+            labels: _.map(timeScaleSegments, 'labels'),
             datasets: [{
                 label: "Number of Queries",
                 fillColor: "rgba(220,220,220,0.2)",
@@ -571,13 +561,44 @@ function createChart(
                 x: {
                     title: {
                         display: true,
-                        text: 'Time of Request'             // Label for the x-axis
+                        text: 'Time of Request'         // Label for the x-axis
                     },
-                    /*ticks: {
-                        stepSize: 1,                        // Customize tick intervals
-                        color: 'blue'                       // Change tick color
+                    ticks: {
+                        //stepSize: 1,                  // Customize tick intervals
+                        //color: 'blue',                // Change tick color
+                        autoSkip: false,                // Automatically calculates how many labels can be shown. This also hides the last label (or skipped from callback)
+                                                        // https://github.com/chartjs/Chart.js/issues/6154 - Chartjs v2.8 removes latest label on line chart 
+                                                        // https://github.com/chartjs/Chart.js/pull/5891 - Remove autoSkip logic to always display last tick
+                        callback: function(value, index, ticks) {
+
+                            // Maximum number of labels to be displayed on the X-AXIS   
+                            let maxDisplayedLabels = 25;                           
+
+                            // Show X-AXIS labels, display logic
+                            return (
+                                
+                                // If the total number of items (time segments) is less than or equal to the label limit (maxDisplayedLabels), then show all labels.
+                                ticks.length <= maxDisplayedLabels ||
+
+                                // Always show the first label (might not be needed)
+                                index === 0 ||                          
+
+                                // Always show the last label (rewuires `autoSkip: false`)
+                                index === (ticks.length - 1) ||
+                                
+                                // If the total number of items (time segments) is more than the label limit (maxDisplayedLabels), this line distributes the labels evenly (upto the max number of labels)
+                                //  Math.round(items.length / maxDisplayedLabels): Determines a "step size" — how often to display a label.
+                                //  index % stepSize === 0: Only display labels at these regular intervals.
+                                index % (Math.round(ticks.length / maxDisplayedLabels)) === 0
+
+                            ) ? this.getLabelForValue(value) : '';
+
+                            // Show only every 2nd label (alterantive method)
+                            //return index % 2 === 0 ? this.getLabelForValue(value) : '';
+
+                        }
                     },
-                    grid: {
+                    /*grid: {
                         color: 'rgba(200, 200, 200, 0.5)' // Customize grid line color
                     }*/
                 },
