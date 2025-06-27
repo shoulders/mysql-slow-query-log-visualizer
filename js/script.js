@@ -417,19 +417,32 @@ function createChart(
     //   numberOfMillis = number of millieseconds in this segment type
     //   format = A stored function that returns a date text string, from the supplied date, for this segment type. Is used for labels on the X_AXIS.
     var timeScaleSpecification = {
+
+        month: {//YYYY-MM-DDTHH:mm:ss.sssZ
+            numberOfMillis: 1000*60*60*24*7*4,   // 4 Weeks / 28 Days
+            //format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0"); }            
+            format: function(date){ return date.toISOString().replace('T', ' ').replace(/-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/, ''); } // (YYYY-MM)
+        },
+        week: {
+            numberOfMillis: 1000*60*60*24*7,
+            //format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0"); }
+            format: function(date){ return date.toISOString().replace('T', ' ').replace(/ [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/, ''); } // (YYYY-MM-DD)
+        },        
+        day: {
+            numberOfMillis: 1000*60*60*24,
+            //format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0"); }
+            format: function(date){ return date.toISOString().replace('T', ' ').replace(/ [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/, ''); } // (YYYY-MM-DD)
+        },
+        hour: {
+            numberOfMillis: 1000*60*60,
+            //format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0") + " " + _.padStart(date.getUTCHours(), 2, "0") + "h"; }
+            format: function(date){ return date.toISOString().replace('T', ' ').replace(/[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/, '') + '00'; } // (YYYY-MM-DD HH)
+        },
         minute: {
-            numberOfMillis: 60 * 1000,
-            format: function(date) {return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0") + " " + _.padStart(date.getUTCHours(), 2, "0") + ":"+ _.padStart(date.getUTCMinutes(), 2, "0");}
-        }, hour: {
-            numberOfMillis: 3600*1000,
-            format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0") + " " + _.padStart(date.getUTCHours(), 2, "0") + "h"; }
-        }, day: {
-            numberOfMillis: 3600*1000*24,
-            format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0"); }
-        }, week: {
-            numberOfMillis: 3600*1000*24*7,
-            format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0"); }
-        }
+            numberOfMillis: 1000*60,
+            //format: function(date) {return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0") + " " + _.padStart(date.getUTCHours(), 2, "0") + ":"+ _.padStart(date.getUTCMinutes(), 2, "0");}
+            format: function(date){ return date.toISOString().replace('T', ' ').replace(/[0-9]{2}\.[0-9]{3}Z$/, '') + '00'; } // (YYYY-MM-DDTHH:mm)
+        },
     };
 
     // Sets the segment type based on the users dropdown selection
@@ -701,7 +714,7 @@ function createWorkingChart(evt, chartIdentifier, firstDate, lastDate){
         // Set start of filtering range
         window.filteringCriteria.start = sourceTimeScaleSegment;
 
-        // Update Onscreen - The end date below the working chart
+        // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
         $("#filterStart").text(window.filteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
     
     // On the second click, set the end of the date range (working chart)
@@ -713,7 +726,7 @@ function createWorkingChart(evt, chartIdentifier, firstDate, lastDate){
         // Set end of filtering range (normally)
         else { window.filteringCriteria.end = sourceTimeScaleSegment;}
 
-        // Update Onscreen - The end date below the working chart
+        // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
         $("#filterEnd").text(window.filteringCriteria.end.endingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
     }
 
