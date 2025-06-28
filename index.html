@@ -4,14 +4,11 @@
         <meta charset="utf-8">
         <title>MySQL Slow Query Log Visualizer</title>
 
-        <link rel="stylesheet" href="css/visualize.css">
-        <link rel="stylesheet" href="css/visualize-dark.css">
+        <!--<link rel="stylesheet" href="css/visualize.css">
+        <link rel="stylesheet" href="css/visualize-dark.css">-->
         <link rel="stylesheet" href="css/style.css">
 
-        <!-- visualizer -->
-        <!--<script type="text/javascript" src="js/enhance.js"></script>-->
         <script src="bower_components/jquery-3.7.1.min.js"></script>
-        <script src="js/excanvas.js"></script>
         <script src="bower_components/chartjs/chart.umd.js"></script>
         <script src="bower_components/lodash.js"></script>
         <script src="bower_components/clipboard/clipboard.min.js"></script>
@@ -100,7 +97,7 @@
                         <th scope="col" class="sort" data-sort="query_pattern_global_occurences">Query Pattern Occurences<br>(Global Data)<br>(Stripped WHERE)<span class="sort-icon"></span></th>
                         <th scope="col" class="sort" data-sort="query_pattern_filtered_occurences">Query Pattern Occurences<br>(Working Data)<br>(Stripped WHERE)<span class="sort-icon"></span></th>
                         <th scope="col" class="sort" data-sort="query_string">Query String<span class="sort-icon"></span></th>
-                        <th scope="col" class="sort" data-sort="displayed_query_with_stripped_where_clauses">Query String<br>(Stripped WHERE)<span class="sort-icon"></span></th>
+                        <th scope="col" class="sort" data-sort="query_with_stripped_where_clauses">Query String<br>(Stripped WHERE)<span class="sort-icon"></span></th>
                     </tr>
                 </thead>
                 <tbody class="list">
@@ -114,7 +111,7 @@
                         <td class="query_pattern_global_occurences"></td>
                         <td class="query_pattern_filtered_occurences"></td>
                         <td class="qs"><pre class="query_string"></pre></td>
-                        <td class="qs"><pre class="displayed_query_with_stripped_where_clauses"></pre></td>
+                        <td class="qs"><pre class="query_with_stripped_where_clauses"></pre></td>
                     </tr>
                 </tbody>
                 <tfoot></tfoot>

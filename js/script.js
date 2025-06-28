@@ -259,7 +259,14 @@ function processLog(logFileTextBlob) {
 
 
             // Add Query String stripped of the `WHERE` clauses
-            logAsDataRecords[i].query_with_stripped_where_clauses = stripWhereClauses(logAsDataRecords[i].query_string);     
+            logAsDataRecords[i].query_with_stripped_where_clauses = stripWhereClauses(logAsDataRecords[i].query_string);
+
+            // Transform some values into buttons
+            var hideShowButtons = '<button class="showBtn" onclick="showQuery(this);">Show</button> <button class="hideBtn" onclick="hideQuery(this);" style="display:none">Hide</button> <button class="copyToClipboardBtn">Copy</button>';
+            logAsDataRecords[i].query_string = hideShowButtons + '<span style="display:none"><br/>' + logAsDataRecords[i].query_string + '</span>';
+            if(logAsDataRecords[i].query_with_stripped_where_clauses) {                       
+                logAsDataRecords[i].query_with_stripped_where_clauses = hideShowButtons + '<span style="display:none"><br/>' + logAsDataRecords[i].query_with_stripped_where_clauses+'</span>';
+            }   
 
             // Add Date information
             logAsDataRecords[i].dateObj = d;
@@ -270,12 +277,7 @@ function processLog(logFileTextBlob) {
             timedata[dayOfWeek][hours] ?? 0; //TODO: time
             timedata[dayOfWeek][hours]++;
 
-            // Transform some values into buttons
-            var hideShowButtons = '<button class="showBtn" onclick="showQuery(this);">Show</button> <button class="hideBtn" onclick="hideQuery(this);" style="display:none">Hide</button> <button class="copyToClipboardBtn">Copy</button>';
-            logAsDataRecords[i].query_string = hideShowButtons + '<span style="display:none"><br/>' + logAsDataRecords[i].query_string + '</span>';
-            if(logAsDataRecords[i].query_with_stripped_where_clauses) {                       
-                logAsDataRecords[i].displayed_query_with_stripped_where_clauses = hideShowButtons + '<span style="display:none"><br/>' + logAsDataRecords[i].query_with_stripped_where_clauses+'</span>';
-            }    
+ 
 
             // Advance Records reference by one
             i++;
@@ -317,8 +319,8 @@ function stripWhereClauses(query) {
 
     var indexOfWhere = query.toUpperCase().lastIndexOf("WHERE");
 
-    // If no WHERE clause, return
-    if(indexOfWhere === -1) {return false}
+    // If no WHERE clause, return nothing
+    if(indexOfWhere === -1) {return ''}
 
     var initialRadical = query.substr(0, indexOfWhere);
 
@@ -366,15 +368,16 @@ function createList()
     // Enable the list
     var options = {
         item: 'log_list_item',
-        maxVisibleItemsCount: 1000
+        maxVisibleItemsCount: 1000,
+        valueNames: Object.keys(logAsDataRecords[0]),   // list.js now need a list of data fields
     };    
-    list = new List('log_list', options, logAsDataRecords);
+    list = new List('log_list', options, logAsDataRecords);    
     
     // Change display options
     document.getElementById('drop_zone').style.display = 'none';       // hide the file drag and drop box
     document.getElementById('log_list').style.display = 'table';       // unhide the data table
     document.getElementById('query_results').style.display = 'block';  // unhide the query results
-
+debugger;
     // When something is changed in the search box, update the table
     $("#log_list_search").keyup(updateTimeChart);
 
