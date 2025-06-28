@@ -839,14 +839,16 @@ function updateTimeChart() {
 
 //// Presentation Section ////
 
+
 // Reset filtered Results
 function resetFilter() {    
     filteredData = null;
-    list.clear();    
+    list.clear();
+    list.add(logAsDataRecords);
     $("#filterStart").text('');
     $("#filterEnd").text('');    
-    document.getElementById('appliedFilter').style.display = 'none';
-    document.getElementById('working_chart_container').style.display = 'none';
+    $('#appliedFilter').css('display', 'none');
+    $('#working_chart_container').css('display', 'none');
     $("#global_time_scale").val('hour'); 
     $("#working_time_scale").val('hour'); 
     createGlobalChart();
