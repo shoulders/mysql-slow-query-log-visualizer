@@ -34,4 +34,7 @@ mysql-slow-query-log-visualizer
 - The code has had extensive comments put in it. This allows easy reading of what the code does.
 - There is a demo log file you can use to test this script.
 - you can set a date range by clicking once on one bar, and then a later one and the working graph will show the records within that date range.
+- If you choose an end date that is before your start date, then your start date will be used for both values.
 - if you double click a bar it will show only the results of that segment in the working chart.
+- While choosing you start and end dates, you can use mix and max on the graphs to choose thos points.
+- The Aggregated graph types do not have a data drill down function (i.e. Workingchart) becasue of the nature of the data used.

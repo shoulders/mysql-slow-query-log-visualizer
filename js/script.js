@@ -47,15 +47,41 @@ var filteredData = [];
 // This will store the Table
 var list;
 
-// An array to hold time related information
-var timedata = [];
-
-// Weekdays against ther date() reference number.  //TODO: sort time
+// Weekdays against ther date() reference number.
 var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-for (var i = 0; i < 7; i++) {
-    timedata[i] = {};
-    timedata[i].dayName = dayNames[i];
+
+// Aggregated Record Array
+var aggregatedData = {
+    'dayOfWeek': [0,0,0,0,0,0,0],
+    'weekdayHours': [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // Sunday
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // Monday
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // Tuesday
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // Wednesday
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // Thursday
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // Friday
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // Saturday
+        ],    
+    'day': [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // length 32 - to keep indexing correct, will be compensated for later
+    'hours': [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+};
+
+
+/*  Just incase I need thee late
+function createBlankArray(numberOfElements) {
+    let blankArray = [];
+    for (let i = 0; i < numberOfElements; i++) {    
+        blankArray[i] = 0;        
+    }
+    return blankArray;
 }
+function createBlankArray(numberOfElements) {
+    return new Array(numberOfElements).fill(0);
+}
+aggregatedData.weekdayHours[0] = new Array(24).fill(0);
+*/
+
+
 
 // Only start when the page is loaded
 $( document ).ready(function() {
@@ -169,16 +195,20 @@ function processLog(logFileTextBlob) {
     for (var t = 0; t < logAsTimeGroups.length; t++) {
 
         // Grab the TimeGroup's `# Time:` statement
-        var local_time = logAsTimeGroups[t].match(/# Time: (.*)\n/)[1]; 
+        var local_time = logAsTimeGroups[t].match(/# Time: (.*)\n/)[1];
 
         // Remove the `# Time:` from this record
         logAsTimeGroups[t] = logAsTimeGroups[t].replace(/# Time: .*\n/, '');
 
         // Generate an ISO 8601 format date from `# Time:` statement
-        // (YYYY-MM-DDTHH:mm:ss.sssZ) 
-        var date_iso = local_time.match(/([0-9]{2,4})([0-9]{2})([0-9]{2})  ([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);        
-        if(date_iso[4].length === 1) {date_iso[4] = '0' + date_iso[4];}   // Add missing 0 onto the hours when needed
-        date_iso = '20' + date_iso[1] + '-' + date_iso[2] + '-' + date_iso[3] + 'T' + date_iso[4] + ':' + date_iso[5] + ':' + date_iso[6] + '.000Z';
+        // (YYYY-MM-DDTHH:mm:ss.sssZ)
+          //FIXME: on the large log file , 1 records has a single space `# Time: 250406 10:00:00` - the code qworks below and it also fixed querypattern thing
+        var date_iso = local_time.match(/([0-9]{2})([0-9]{2})([0-9]{2})[ ]{1,2}([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);        
+        if(date_iso === null) {debugger;}
+        //if(date_iso[4].length === 1) {date_iso[4] = '0' + date_iso[4];} // Add missing 0 onto the hours when needed //TODO: remove this line
+        //date_iso[4] = _.padStart(date_iso[4], 2, '0') // Add missing 0 onto the hours when needed //TODO: remove this line
+
+        date_iso = '20' + date_iso[1] + '-' + date_iso[2] + '-' + date_iso[3] + 'T' + _.padStart(date_iso[4], 2, '0') + ':' + date_iso[5] + ':' + date_iso[6] + '.000Z';
 
         // Create Date Object (UTC time)
         // JavaScript's Date object does not support timezones.
@@ -268,16 +298,26 @@ function processLog(logFileTextBlob) {
                 logAsDataRecords[i].query_with_stripped_where_clauses = hideShowButtons + '<span style="display:none"><br/>' + logAsDataRecords[i].query_with_stripped_where_clauses+'</span>';
             }   
 
-            // Add Date information
+            // Add Date information            
             logAsDataRecords[i].dateObj = d;
             logAsDataRecords[i].date = dateString;
-            logAsDataRecords[i].hour = hours;           
+            logAsDataRecords[i].dayName = dayNames[dayOfWeek];  // This will allow searching by day name in the table
 
-            // This is adding to a count, the hour of the query against it's weekday (Monday, Tuesday....)
-            timedata[dayOfWeek][hours] ?? 0; //TODO: time
-            timedata[dayOfWeek][hours]++;
 
- 
+            //// Record Aggregation Section ////
+
+            
+            // Weekdays Aggregated record count (Sunday - Saturday)            
+            aggregatedData.dayOfWeek[dayOfWeek]++; 
+
+            // Weekdays (by hour) Aggregated record count (Sunday - Saturday)           
+            aggregatedData.weekdayHours[dayOfWeek][hours]++;
+            
+            // Days Aggregated record count (1 - 31) (NB: thre is a zero index in the array)
+            aggregatedData.day[day]++; 
+
+            // count of all records in this hour
+            aggregatedData.hours[hours]++;              
 
             // Advance Records reference by one
             i++;
@@ -346,6 +386,8 @@ function stripWhereClauses(query) {
 // Count and Add all occurances of a record's Query Pattern (WHERE clause removed), for all records
 function calculateQueryPatternOccurencesTextOn(dataItems, target) {
 
+    //debugger;
+
     // Group by `Stripped WHERE clause`. The returned data includes a count of each group's members
     var dataGroupedByStrippedQueries = _.groupBy(dataItems, 'query_with_stripped_where_clauses');
 
@@ -368,7 +410,7 @@ function createList()
     // Enable the list
     var options = {
         item: 'log_list_item',
-        maxVisibleItemsCount: 1000,
+        maxVisibleItemsCount: 200,
         valueNames: Object.keys(logAsDataRecords[0]),   // list.js now need a list of data fields
     };    
     list = new List('log_list', options, logAsDataRecords);    
@@ -377,7 +419,7 @@ function createList()
     document.getElementById('drop_zone').style.display = 'none';       // hide the file drag and drop box
     document.getElementById('log_list').style.display = 'table';       // unhide the data table
     document.getElementById('query_results').style.display = 'block';  // unhide the query results
-debugger;
+
     // When something is changed in the search box, update the table
     $("#log_list_search").keyup(updateTimeChart);
 
@@ -393,27 +435,196 @@ debugger;
 //// Creating Charts Section ////
 
 
-// Create a Chart
-function createChart(
+// Create the GLOBAL chart (using logAsDataRecords as source data)
+function createGlobalChart()
+{
+    // Get date range of the records (date() uses local time)
+    var firstDate = _.minBy(logAsDataRecords, 'dateObj').dateObj;
+    var lastDate = _.maxBy(logAsDataRecords, 'dateObj').dateObj;
+
+    // When `Group By :` dropdown is changed, reload the graph
+    $("#global_time_scale").off('change');
+    $("#global_time_scale").on('change', function(){
+        createGlobalChart();
+    });    
+    
+    // Create Chart the correct for the 'Group By' (Drop Down) data type selection
+    switch ($("#global_time_scale").val()) {
+        case 'aggregatedWeekdays':
+            createaggregatedWeekdaysChart(
+                logAsDataRecords,
+                firstDate,
+                lastDate,
+                'displayedGlobalChart',
+                $("#globalChart"),                            
+                $("#global_chart_queries_count")               
+            );
+            break;
+        case 'aggregatedWeekdayHours':
+            createaggregatedWeekdayHoursChart(
+                logAsDataRecords,
+                firstDate,
+                lastDate,
+                'displayedGlobalChart',
+                $("#globalChart"),                            
+                $("#global_chart_queries_count")               
+            );
+            break;
+        case 'aggregatedDays':
+            createaggregatedDaysChart(
+                logAsDataRecords,
+                firstDate,
+                lastDate,
+                'displayedGlobalChart',
+                $("#globalChart"),                            
+                $("#global_chart_queries_count")               
+            );
+            break;
+        case 'aggregatedHours':
+            createaggregatedHoursChart(
+                logAsDataRecords,
+                firstDate,
+                lastDate,
+                'displayedGlobalChart',
+                $("#globalChart"),                            
+                $("#global_chart_queries_count")               
+            );
+            break;
+        default:            
+            createStandardChart(
+                logAsDataRecords,
+                firstDate,
+                lastDate,
+                'displayedGlobalChart',
+                $("#globalChart"),
+                $("#global_time_scale"),                
+                $("#global_chart_queries_count"),
+                'globalGroupedTimescaleData'                
+            );            
+    }
+
+};
+
+// Create WORKING chart (with filtered data) (from a click event)  FIXME: this perfectly handles the clikc event, but does not handle the dropdown menu at all.
+function createWorkingChart(evt = null, firstDate = null, lastDate = null, globalChartIdentifier = null){
+
+    // When `Group By :` dropdown is changed, reload the graph
+    $("#working_time_scale").off('change');
+    $("#working_time_scale").on('change', function(){
+        createWorkingChart();
+    });
+
+    // If this funciton has been called by a click event
+    if(evt) {
+
+
+        //// Get Data from Global Chart (via the click event) ////
+
+        
+        var chartInfos = window[globalChartIdentifier];    
+
+        // `getElementsAtEventForMode` is a Chart.js method to find data points on the chart that are nearest to the event evt (e.g. a mouse click or hover).
+        var activePoints = chartInfos.chartComponent.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+
+        // This picks the middle point from the array of active (nearest) points.
+        var medianPoint = activePoints[Math.floor(activePoints.length/2)];
+
+        // If no median point is found, exit chart creation
+        if(!medianPoint) { return; }  
+
+        // Get the median index, which we will use for the source segment's index
+        var index = medianPoint.index;
+
+        // Get the source segment's object/array from the chartInfos object.
+        var sourceTimeScaleSegment = chartInfos.timeScaleSegments[index];
+
+
+        //// Filter Data ////
+
+        
+        // Ensuring filtering criteria is defined on the window object (if not set, then first click will be implied)
+        window.filteringCriteria = window.filteringCriteria || { even: 0, start: null, end: null };
+
+        // Determine whether it's the "start date" (first click) or the "end date" (second click).
+        window.filteringCriteria.even = (window.filteringCriteria.even + 1) % 2;
+
+        // On the first click, set the start of the date range (working chart)
+        if(window.filteringCriteria.even === 1){
+
+            // Set start of filtering range
+            window.filteringCriteria.start = sourceTimeScaleSegment;
+
+            // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
+            $("#filterStart").text(window.filteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, '')); 
+            $("#filterEnd").text(''); 
+        
+        // On the second click, set the end of the date range (working chart)
+        } else {
+
+            // If the start date is greater than the end date, set end to be the same as start (same as double clickling)
+            if(window.filteringCriteria.start.startingDate > sourceTimeScaleSegment.startingDate) { window.filteringCriteria.end = window.filteringCriteria.start }
+
+            // Set end of filtering range (normally)
+            else { window.filteringCriteria.end = sourceTimeScaleSegment;}
+
+            // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
+            $("#filterEnd").text(window.filteringCriteria.end.endingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
+        }
+
+        // Build the filtered records
+        filterData(window.filteringCriteria);
+
+
+        //// Update the filtered Data in the table  ////
+
+
+        // Clear and Update the table/list with the filtered records
+        list.clear();   
+        list.add(filteredData);
+
+    }
+
+    // Create/update the working chart with the filtered data
+    createStandardChart(
+        filteredData,
+        window.filteringCriteria.start ? window.filteringCriteria.start.startingDate : firstDate,
+        window.filteringCriteria.end ? window.filteringCriteria.end.endingDate : lastDate,
+        'displayedWorkingChart',
+        $("#workingChart"),
+        $("#working_time_scale"),        
+        $("#working_chart_queries_count"),
+        'workingGroupedTimescaleData'        
+    );
+
+    // Update Onscreen - Show the chart
+    document.getElementById('appliedFilter').style.display = 'block';
+    document.getElementById('working_chart_container').style.display = 'block';
+
+}
+
+// Create a Standard Chart
+function createStandardChart(
     data,
     firstDate,
     lastDate,
-    $timeScaleSelector,
+    chartIdentifier,            // This chart identifier is created dynamically by Chart.js
     $chartCanvas,
+    $timeScaleSelector,    
     $queryCountContainer,
-    groupedDataVariableName,
-    chartIdentifier              // This chart identifier is created dynamically by Chart.js
+    groupedDataVariableName
+    
 )
 {   
+     /* 
     // `arguments` is a special variable that holds the calling arguments of this function
-    var initialArguments = arguments;
+    //var initialArguments = arguments;
 
-    // When `Time Scale (Group By) :` dropdown is changed
+   When `Group By :` dropdown is changed  - should not be here - moved to further upstream - this should be made only for working chart
     $timeScaleSelector.off('change');
     $timeScaleSelector.on('change', function(){
-        // Re-calling createChart() with same arguments
-        createChart.apply(null, initialArguments);
-    });
+        // Re-calling createStandardChart() with same arguments
+        createStandardChart.apply(null, initialArguments);
+    });*/
     
     // Return X-AXIS time segment specifications (Length in milliseconds / Label Format via a function)
     //   _.padStart() = is adding in a "0" when minute/hour/day/week only has 1 character    
@@ -510,7 +721,7 @@ function createChart(
         // Returns the .map() array  ([0],[1],[2],[3],[4],[5],.....)
         .value();
 
-    // Group records by time segment (timeScaleSegments): copy`data` into new array, add segment index to records, then group records by index (timeScaleRange) (returns object)
+    // TODO: `Build the X-AXIS` ???? - Group records by time segment (timeScaleSegments): copy`data` into new array, add segment index to records, then group records by index (timeScaleRange) (returns object)
     window[groupedDataVariableName] = 
 
         // Loop through all `data` records running the function() on each of them. (Returns a new array)
@@ -582,7 +793,7 @@ function createChart(
                     ticks: {
                         //stepSize: 1,                  // Customize tick intervals
                         //color: 'blue',                // Change tick color
-                        autoSkip: false,                // Automatically calculates how many labels can be shown. This also hides the last label (or skipped from callback)
+                        autoSkip: true,                 // Automatically calculates how many labels can be shown. This also hides the last label (or skipped from callback)
                                                         // https://github.com/chartjs/Chart.js/issues/6154 - Chartjs v2.8 removes latest label on line chart 
                                                         // https://github.com/chartjs/Chart.js/pull/5891 - Remove autoSkip logic to always display last tick
                         callback: function(value, index, ticks) {
@@ -599,8 +810,8 @@ function createChart(
                                 // Always show the first label (might not be needed)
                                 index === 0 ||                          
 
-                                // Always show the last label (rewuires `autoSkip: false`)
-                                index === (ticks.length - 1) ||
+                                // Always show the last label (requires `autoSkip: false`)
+                                //index === (ticks.length - 1) ||
                                 
                                 // If the total number of items (time segments) is more than the label limit (maxDisplayedLabels), this line distributes the labels evenly (upto the max number of labels)
                                 //  Math.round(items.length / maxDisplayedLabels): Determines a "step size" — how often to display a label.
@@ -647,125 +858,491 @@ function createChart(
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
-    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the gloabl and working chart.
+    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the global and working chart.
     $chartCanvas.off('click');
-    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, chartIdentifier, firstDate, lastDate); });
+    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
 
     // Show the Chart
     document.getElementById('global_chart_container').style.display = 'block';
 
 }
 
-// Create the GLOBAL chart (using logAsDataRecords as source data)
-function createGlobalChart()
+// Create Aggregated Weekdays Chart
+function createaggregatedWeekdaysChart(
+    data,
+    firstDate,
+    lastDate,
+    chartIdentifier,
+    $chartCanvas,  
+    $queryCountContainer    
+)
 {
-    // Get date range of the records (date() uses local time)
-    var firstDate = _.minBy(logAsDataRecords, 'dateObj').dateObj;
-    var lastDate = _.maxBy(logAsDataRecords, 'dateObj').dateObj;
+    // Build an array of time segments (Weekday, Mon-Sun) with, a count of records per time segment
+    var timeScaleSegments = convertSunSatToMonSun(aggregatedData.dayOfWeek);
 
-    // Create Chart with this data
-    createChart(
-        logAsDataRecords,
-        firstDate,
-        lastDate,
-        $("#global_time_scale"),
-        $("#globalChart"),
-        $("#global_chart_queries_count"),
-        'globalGroupedTimescaleData',
-        'displayedGlobalChart'
-    );
+    // Build the chart's dataset (records per segment in an array)
+    var chartDatasetData = timeScaleSegments;
+
+     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$("#globalChart")`  ]
+    var ctx = $chartCanvas.get(0).getContext("2d");
+
+    // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
+    if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
+
+        // Instanciate Chart Class
+    var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            datasets: [{
+                label: "Number of Queries",
+                fillColor: "rgba(220,220,220,0.2)",
+                strokeColor: "hsl(0, 0.00%, 86.30%)",
+                pointColor: "rgba(220,220,220,1)",
+                pointStrokeColor: "#fff",
+                pointHighlightFill: "#fff",
+                pointHighlightStroke: "rgba(220,220,220,1)",
+                barPercentage: 0.95,                     // Spacing between bars
+                categoryPercentage: 0.95,                // Spacing between categories
+                data: chartDatasetData,
+            }]
+        },
+        options: {
+            pointHitDetectionRadius: 1,
+            scales: {
+
+                // X- AXIS configuration
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Day of Request'         // Label for the x-axis
+                    },
+                    ticks: {
+                        //stepSize: 1,                  // Customize tick intervals
+                        //color: 'blue',                // Change tick color
+                    },
+                    /*grid: {
+                        color: 'rgba(200, 200, 200, 0.5)' // Customize grid line color
+                    }*/
+                },
+                // Y-AXIS configuration
+                y: {
+                    beginAtZero: true,                      // Start the axis at zero
+                    title: {
+                        display: true,
+                        text: 'Requests'                    // Label for the y-axis
+                    },
+                    ticks: {
+                        stepSize: 1,                        // Ensure integers
+                        //color: 'blue'                     // Change tick color
+                    },
+                    /*grid: {
+                        color: 'rgba(200, 200, 200, 0.5)' // Customize grid line color
+                    }*/
+                }
+            }
+        }
+    });
+
+    // Push the Chart object to the DOM
+    window[chartIdentifier] = {
+        chartComponent:
+            chart,
+            timeScaleSegments: timeScaleSegments
+    };
+
+    // Update Onscreen -  the current number of queries being displayed
+    $queryCountContainer.html("Displaying " + data.length + " queries");
+
+    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the global and working chart.
+    $chartCanvas.off('click');
+    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
+
+    // Show the Chart
+    document.getElementById('global_chart_container').style.display = 'block';
 
 };
 
-// Create WORKING chart (with filtered data) (from a click event)
-function createWorkingChart(evt, chartIdentifier, firstDate, lastDate){
+// Create Aggregated Weekday Hours Chart - This will be aline graph with multiple datyasets
+function createaggregatedWeekdayHoursChart(
+    data,
+    firstDate,
+    lastDate,
+    chartIdentifier,
+    $chartCanvas,  
+    $queryCountContainer    
+)
+{
+    //TODO: should i keep the data split like this or inject straight into the dataset. + tidy up the 2 comments blow so they make sense to keep them
+
+    // Build an array of time segments (Day) with, a count of records per time segment - first element not used so is removed.
+    var timeScaleSegments = aggregatedData.hours;
+
+    // Build the chart's dataset (records per segment in an array)
+    let chartDatasetData = {};
+    chartDatasetData.monday = convertSunSatToMonSun(aggregatedData.weekdayHours[1]);
+    chartDatasetData.tuesday = convertSunSatToMonSun(aggregatedData.weekdayHours[2]);
+    chartDatasetData.wednesday = convertSunSatToMonSun(aggregatedData.weekdayHours[3]);
+    chartDatasetData.thursday = convertSunSatToMonSun(aggregatedData.weekdayHours[4]);
+    chartDatasetData.friday = convertSunSatToMonSun(aggregatedData.weekdayHours[5]);
+    chartDatasetData.saturday = convertSunSatToMonSun(aggregatedData.weekdayHours[6]);
+    chartDatasetData.sunday = convertSunSatToMonSun(aggregatedData.weekdayHours[0]);     
+
+     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$("#globalChart")`  ]
+    var ctx = $chartCanvas.get(0).getContext("2d");
+
+    // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
+    if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
+
+        // Instanciate Chart Class
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'],
+            datasets: [
+                {
+                    label: "Monday",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "hsl(0, 0.00%, 86.30%)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    barPercentage: 0.95,                     // Spacing between bars
+                    categoryPercentage: 0.95,                // Spacing between categories
+                    data: chartDatasetData.monday,
+                },
+                {
+                    label: "Tuesday",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "hsl(0, 0.00%, 86.30%)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    barPercentage: 0.95,                     // Spacing between bars
+                    categoryPercentage: 0.95,                // Spacing between categories
+                    data: chartDatasetData.tuesday,
+                },
+                {
+                    label: "Wednesday",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "hsl(0, 0.00%, 86.30%)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    barPercentage: 0.95,                     // Spacing between bars
+                    categoryPercentage: 0.95,                // Spacing between categories
+                    data: chartDatasetData.wednesday,
+                },
+                {
+                    label: "Thursday",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "hsl(0, 0.00%, 86.30%)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    barPercentage: 0.95,                     // Spacing between bars
+                    categoryPercentage: 0.95,                // Spacing between categories
+                    data: chartDatasetData.thursday,
+                },
+                {
+                    label: "Friday",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "hsl(0, 0.00%, 86.30%)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    barPercentage: 0.95,                     // Spacing between bars
+                    categoryPercentage: 0.95,                // Spacing between categories
+                    data: chartDatasetData.friday,
+                },
+                {
+                    label: "Saturday",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "hsl(0, 0.00%, 86.30%)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    barPercentage: 0.95,                     // Spacing between bars
+                    categoryPercentage: 0.95,                // Spacing between categories
+                    data: chartDatasetData.saturday,
+                },
+                {
+                    label: "Sunday",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "hsl(0, 0.00%, 86.30%)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    barPercentage: 0.95,                     // Spacing between bars
+                    categoryPercentage: 0.95,                // Spacing between categories
+                    data: chartDatasetData.sunday,
+                }
+        ]
+        },
+        options: {
+            pointHitDetectionRadius: 1,
+            scales: {
+
+                // X-AXIS configuration
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Hour of Request'         // Label for the x-axis
+                    },
+                    ticks: {
+                        //stepSize: 1,                  // Customize tick intervals
+                        //color: 'blue',                // Change tick color
+                    },
+                    /*grid: {
+                        color: 'rgba(200, 200, 200, 0.5)' // Customize grid line color
+                    }*/
+                },
+                // Y-AXIS configuration
+                y: {
+                    beginAtZero: true,                      // Start the axis at zero
+                    title: {
+                        display: true,
+                        text: 'Requests'                    // Label for the y-axis
+                    },
+                    ticks: {
+                        stepSize: 1,                        // Ensure integers
+                        //color: 'blue'                     // Change tick color
+                    },
+                    /*grid: {
+                        color: 'rgba(200, 200, 200, 0.5)' // Customize grid line color
+                    }*/
+                }
+            }
+        }
+    });
+
+    // Push the Chart object to the DOM
+    window[chartIdentifier] = {
+        chartComponent:
+            chart,
+            timeScaleSegments: timeScaleSegments
+    };
+
+    // Update Onscreen -  the current number of queries being displayed
+    $queryCountContainer.html("Displaying " + data.length + " queries");
+
+    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the global and working chart.
+    $chartCanvas.off('click');
+    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
+
+    // Show the Chart
+    document.getElementById('global_chart_container').style.display = 'block';
+
+};
+
+// Create Aggregated Days Chart
+function createaggregatedDaysChart(
+    data,
+    firstDate,
+    lastDate,
+    chartIdentifier,
+    $chartCanvas,  
+    $queryCountContainer    
+)
+{
+    // Build an array of time segments (Day) with, a count of records per time segment - first element not used so is removed. (X-AXIS)
+    var timeScaleSegments = aggregatedData.day.slice(1);
+
+    // Build the chart's dataset (records per segment in an array)
+    var chartDatasetData = timeScaleSegments;
+
+     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$("#globalChart")`  ]
+    var ctx = $chartCanvas.get(0).getContext("2d");
+
+    // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
+    if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
+
+        // Instanciate Chart Class
+    var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31'],
+            datasets: [{
+                label: "Number of Queries",
+                fillColor: "rgba(220,220,220,0.2)",
+                strokeColor: "hsl(0, 0.00%, 86.30%)",
+                pointColor: "rgba(220,220,220,1)",
+                pointStrokeColor: "#fff",
+                pointHighlightFill: "#fff",
+                pointHighlightStroke: "rgba(220,220,220,1)",
+                barPercentage: 0.95,                     // Spacing between bars
+                categoryPercentage: 0.95,                // Spacing between categories
+                data: chartDatasetData,
+            }]
+        },
+        options: {
+            pointHitDetectionRadius: 1,
+            scales: {
+
+                // X-AXIS configuration
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Day of Request'         // Label for the x-axis
+                    },
+                    ticks: {
+                        //stepSize: 1,                  // Customize tick intervals
+                        //color: 'blue',                // Change tick color
+                    },
+                    /*grid: {
+                        color: 'rgba(200, 200, 200, 0.5)' // Customize grid line color
+                    }*/
+                },
+                // Y-AXIS configuration
+                y: {
+                    beginAtZero: true,                      // Start the axis at zero
+                    title: {
+                        display: true,
+                        text: 'Requests'                    // Label for the y-axis
+                    },
+                    ticks: {
+                        stepSize: 1,                        // Ensure integers
+                        //color: 'blue'                     // Change tick color
+                    },
+                    /*grid: {
+                        color: 'rgba(200, 200, 200, 0.5)' // Customize grid line color
+                    }*/
+                }
+            }
+        }
+    });
+
+    // Push the Chart object to the DOM
+    window[chartIdentifier] = {
+        chartComponent:
+            chart,
+            timeScaleSegments: timeScaleSegments
+    };
+
+    // Update Onscreen -  the current number of queries being displayed
+    $queryCountContainer.html("Displaying " + data.length + " queries");
+
+    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the global and working chart.
+    $chartCanvas.off('click');
+    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
+
+    // Show the Chart
+    document.getElementById('global_chart_container').style.display = 'block';
+
+};
+
+// Create Aggregated Hours Chart
+function createaggregatedHoursChart(
+    data,
+    firstDate,
+    lastDate,
+    chartIdentifier,
+    $chartCanvas,  
+    $queryCountContainer    
+)
+{
+    // Build an array of time segments (Day) with, a count of records per time segment - first element not used so is removed.
+    var timeScaleSegments = aggregatedData.hours;
+
+    // Build the chart's dataset (records per segment in an array)
+    var chartDatasetData = timeScaleSegments;
+
+     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$("#globalChart")` ]
+    var ctx = $chartCanvas.get(0).getContext("2d");
+
+    // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
+    if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
+
+    // Instanciate Chart Class TODO: --> Instanciate Chart 
+    var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'],
+            datasets: [{
+                label: "Number of Queries",
+                fillColor: "rgba(220,220,220,0.2)",
+                strokeColor: "hsl(0, 0.00%, 86.30%)",
+                pointColor: "rgba(220,220,220,1)",
+                pointStrokeColor: "#fff",
+                pointHighlightFill: "#fff",
+                pointHighlightStroke: "rgba(220,220,220,1)",
+                barPercentage: 0.95,                     // Spacing between bars
+                categoryPercentage: 0.95,                // Spacing between categories
+                data: chartDatasetData,
+            }]
+        },
+        options: {
+            pointHitDetectionRadius: 1,
+            scales: {
+
+                // X-AXIS configuration
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Hour of Request'         // Label for the x-axis
+                    },
+                    ticks: {
+                        //stepSize: 1,                  // Customize tick intervals
+                        //color: 'blue',                // Change tick color
+                    },
+                    /*grid: {
+                        color: 'rgba(200, 200, 200, 0.5)' // Customize grid line color
+                    }*/
+                },
+                // Y-AXIS configuration
+                y: {
+                    beginAtZero: true,                      // Start the axis at zero
+                    title: {
+                        display: true,
+                        text: 'Requests'                    // Label for the y-axis
+                    },
+                    ticks: {
+                        stepSize: 1,                        // Ensure integers
+                        //color: 'blue'                     // Change tick color
+                    },
+                    /*grid: {
+                        color: 'rgba(200, 200, 200, 0.5)' // Customize grid line color
+                    }*/
+                }
+            }
+        }
+    });
+
+    // Push the Chart object to the DOM  FIXME: this does notthign that I can see, rem, check, remove, just pushing copies of the chart to the DM and storing it.
+    //FIXME: is the list/table using this?
+    window[chartIdentifier] = {
+        chartComponent:
+            chart,
+            timeScaleSegments: timeScaleSegments
+    };
+
+    // Update Onscreen -  the current number of queries being displayed
+    $queryCountContainer.html("Displaying " + data.length + " queries");
+
+    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the global and working chart.
+    $chartCanvas.off('click');
+    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
+
+    // Show the Chart
+    document.getElementById('global_chart_container').style.display = 'block';
+
+};
 
 
-    //// Get Data from Global Chart (via the click event) ////
-    
+//// Update, Filter and conversion section ////
 
-    var chartInfos = window[chartIdentifier];
-
-    // `getElementsAtEventForMode` is a Chart.js method to find data points on the chart that are nearest to the event evt (e.g. a mouse click or hover).
-    var activePoints = chartInfos.chartComponent.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
-
-    // This picks the middle point from the array of active (nearest) points.
-    var medianPoint = activePoints[Math.floor(activePoints.length/2)];
-
-    // If no median point is found, exit chart creation
-    if(!medianPoint) { return; }  
-
-    // Get the median index, which we will use for the source segment's index
-    var index = medianPoint.index;
-
-    // Get the source segment's object/array from the chartInfos object.
-    var sourceTimeScaleSegment = chartInfos.timeScaleSegments[index];
-
-
-    //// Filter Data ////
-
-    
-    // Ensuring filtering criteria is defined on the window object (if not set, then first click will be implied)
-    window.filteringCriteria = window.filteringCriteria || { even: 0, start: null, end: null };
-
-    // Determine whether it's the "start date" (first click) or the "end date" (second click).
-    window.filteringCriteria.even = (window.filteringCriteria.even + 1) % 2;
-
-    // On the first click, set the start of the date range (working chart)
-    if(window.filteringCriteria.even === 1){
-
-        // Set start of filtering range
-        window.filteringCriteria.start = sourceTimeScaleSegment;
-
-        // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
-        $("#filterStart").text(window.filteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, '')); 
-        $("#filterEnd").text(''); 
-    
-    // On the second click, set the end of the date range (working chart)
-    } else {
-
-        // If the start date is greater than the end date, set end to be the same as start (same as double clickling)
-        if(window.filteringCriteria.start.startingDate > sourceTimeScaleSegment.startingDate) { window.filteringCriteria.end = window.filteringCriteria.start }
-
-        // Set end of filtering range (normally)
-        else { window.filteringCriteria.end = sourceTimeScaleSegment;}
-
-        // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
-        $("#filterEnd").text(window.filteringCriteria.end.endingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
-    }
-
-    // Build the filtered records
-    filterData(window.filteringCriteria);
-
-
-    //// Output the filtered Data (to the table and working chart) ////
-
-
-    // Clear and Update the table/list with the filtered records
-    list.clear();   
-    list.add(filteredData);
-
-    // Create/update the working chart with the filtered data
-    createChart(
-        filteredData,
-        window.filteringCriteria.start ? window.filteringCriteria.start.startingDate : firstDate,
-        window.filteringCriteria.end ? window.filteringCriteria.end.endingDate : lastDate,
-        $("#working_time_scale"),
-        $("#workingChart"),
-        $("#working_chart_queries_count"),
-        'workingGroupedTimescaleData',
-        'displayedWorkingChart'
-    );
-
-    // Update Onscreen - Show the chart
-    document.getElementById('appliedFilter').style.display = 'block';
-    document.getElementById('working_chart_container').style.display = 'block';
-
+// Convert a day array from (Sun-Sat) to (Mon-Sun)
+function convertSunSatToMonSun(dayArray){
+    dayArray.push(dayArray.shift()); // Take the first array element and put it at the end
+    return dayArray;
 }
-
-
-//// Update and Filter section ////
-
 
 // Build Filtered Data, using Chart filter criteria (Date) (called from working chart)
 function filterData(criteria) {
@@ -799,16 +1376,17 @@ function filterData(criteria) {
 function updateTimeChart() {
     
     var count = 0;
+
     var is = list.items;
     var dayOfWeek;    
     var hours;
 
     // Build an array of hours against days, and then set the dayName TODO: not sure exactly what this is for, needs finisihing
     for (var d = 0; d < 7; d++) {
-        for (var hour in timedata[d]) {
-            timedata[d][hour] = 0;
+        for (var hour in aggregatedData[d]) {
+            aggregatedData[d][hour] = 0;
         }
-        timedata[d].dayName = dayNames[d];
+        aggregatedData[d].dayName = dayNames[d];
     }
     
     // Search all List Items (records)
@@ -827,9 +1405,9 @@ function updateTimeChart() {
 
             hours = obj.hour;                    // TODO: later I specify hours, but not day, should i so noth can be called by objec
             dayOfWeek = obj.dateObj.getUTCDay();
-            timedata[dayOfWeek][hours]++;
+            aggregatedData[dayOfWeek][hours]++;
 
-            // Increment the record counter
+            // Increment the filtered records counter
             count++;
         }
     }

@@ -12,6 +12,7 @@ https://code.google.com/p/mysql-slow-query-log-visualizer/
 License (MIT)
 
 Copyright (c) 2015 Frédéric Camblor http://www.4sh.fr
+Copyright (c) 2025 Jon Brown https://quantumwarp.com/
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
