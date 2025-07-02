@@ -47,6 +47,9 @@ var filteredData = [];
 // This will store the Table
 var list;
 
+// Actively display charts data - required for chart destruction and click handling
+var displayedCharts = {}
+
 // Weekdays against ther date() reference number.
 var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -137,7 +140,9 @@ function handleFileSelect(evt) {
             $('#log_progress').prop('hidden', true );
             $('#information').prop('hidden', true );   
             $('#log_information').prop('hidden', false );   
-            $('#log_information_entries').html(numberOfEntries);            
+            $('#log_information_numberOfEntries').html(numberOfEntries);       
+            $('#log_information_startDate').html(logAsDataRecords[0].date);  
+            $('#log_information_endDate').html(logAsDataRecords[numberOfEntries - 1].date);       
 
             // Change screen from file dropbox, create and display the table         
             try {
@@ -148,7 +153,7 @@ function handleFileSelect(evt) {
 
             // Create and display the Chart
             try {
-                createGlobalChart();
+                buildGlobalChart();
             } catch (error) {
                 console.log(error);
             }
@@ -202,9 +207,8 @@ function processLog(logFileTextBlob) {
 
         // Generate an ISO 8601 format date from `# Time:` statement
         // (YYYY-MM-DDTHH:mm:ss.sssZ)
-          //FIXME: on the large log file , 1 records has a single space `# Time: 250406 10:00:00` - the code qworks below and it also fixed querypattern thing
         var date_iso = local_time.match(/([0-9]{2})([0-9]{2})([0-9]{2})[ ]{1,2}([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);        
-        if(date_iso === null) {debugger;}
+
         //if(date_iso[4].length === 1) {date_iso[4] = '0' + date_iso[4];} // Add missing 0 onto the hours when needed //TODO: remove this line
         //date_iso[4] = _.padStart(date_iso[4], 2, '0') // Add missing 0 onto the hours when needed //TODO: remove this line
 
@@ -386,8 +390,6 @@ function stripWhereClauses(query) {
 // Count and Add all occurances of a record's Query Pattern (WHERE clause removed), for all records
 function calculateQueryPatternOccurencesTextOn(dataItems, target) {
 
-    //debugger;
-
     // Group by `Stripped WHERE clause`. The returned data includes a count of each group's members
     var dataGroupedByStrippedQueries = _.groupBy(dataItems, 'query_with_stripped_where_clauses');
 
@@ -415,13 +417,6 @@ function createList()
     };    
     list = new List('log_list', options, logAsDataRecords);    
     
-    // Change display options
-    document.getElementById('drop_zone').style.display = 'none';       // hide the file drag and drop box
-    document.getElementById('log_list').style.display = 'table';       // unhide the data table
-    document.getElementById('query_results').style.display = 'block';  // unhide the query results
-
-    // When something is changed in the search box, update the table
-    $("#log_list_search").keyup(updateTimeChart);
 
     // This enables the copy to clipboard buttons
     new ClipboardJS('.copyToClipboardBtn', {
@@ -429,65 +424,119 @@ function createList()
             return trigger.nextElementSibling.innerText;
         }
     });
+
+    // When something is changed in the search box, update the table
+    $('#log_list_search').keyup(updateListAfterFilterBoxChange);
+
+    // Change display options
+    $('#drop_zone').css('display','none');          // hide the file drag and drop box
+    $('#log_list').css('display','table');          // unhide the data table
+    $('#query_results').css('display','block');     // unhide the query results
+}
+
+// Filter the table entries and update the screen - this is run when a keyup in the filter box is deteted
+function updateListAfterFilterBoxChange() {
+    
+    var count = 0;
+
+    var is = list.items;
+    var dayOfWeek;    
+    var hours;
+
+    // Build an array of hours against days, and then set the dayName TODO: not sure exactly what this is for, needs finisihing
+    // TODO: I already have done this above
+    for (var d = 0; d < 7; d++) {
+        for (var hour in aggregatedData[d]) {
+            aggregatedData[d][hour] = 0;
+        }
+        aggregatedData[d].dayName = dayNames[d];
+    }
+    
+    // Search all List Items (records)
+    for (var i = 0, il = is.length; i < il && i < 300000; i++) {     
+        
+        // If this record has a matching value in any of its columns
+        if (
+            (list.filtered && list.searched && is[i].found && is[i].filtered) ||
+            (list.filtered && !list.searched && is[i].filtered) ||
+            (!list.filtered && list.searched && is[i].found) ||
+            (!list.filtered && !list.searched)
+            ) {
+        
+            // Add this list items values to an object
+            var obj = is[i].values();
+
+            hours = obj.hour;                    // TODO: later I specify hours, but not day, should i so noth can be called by objec
+            dayOfWeek = obj.dateObj.getUTCDay();
+            aggregatedData[dayOfWeek][hours]++;
+
+            // Increment the filtered records counter
+            count++;
+        }
+    }
+
+    // Update Onscreen - number of results
+    $('#search_count').text(count + " results ");
+
 }
 
 
-//// Creating Charts Section ////
+//// Creating Sections ////
 
 
 // Create the GLOBAL chart (using logAsDataRecords as source data)
-function createGlobalChart()
+function buildGlobalChart()
 {
-    // Get date range of the records (date() uses local time)
+    // Get date range of the records (date() uses local time) TODO: should these dats be global
     var firstDate = _.minBy(logAsDataRecords, 'dateObj').dateObj;
     var lastDate = _.maxBy(logAsDataRecords, 'dateObj').dateObj;
 
     // When `Group By :` dropdown is changed, reload the graph
-    $("#global_time_scale").off('change');
-    $("#global_time_scale").on('change', function(){
-        createGlobalChart();
-    });    
+    //$('#global_time_scale').off('change');
+    $('#global_time_scale').on('change', function(){
+        buildGlobalChart();
+    });
     
     // Create Chart the correct for the 'Group By' (Drop Down) data type selection
-    switch ($("#global_time_scale").val()) {
+    switch ($('#global_time_scale').val()) {
         case 'aggregatedWeekdays':
-            createaggregatedWeekdaysChart(
+            createAggregatedWeekdaysChart(
                 logAsDataRecords,
                 firstDate,
                 lastDate,
-                'displayedGlobalChart',
-                $("#globalChart"),                            
-                $("#global_chart_queries_count")               
+                'globalChart',
+                $('#globalChart'),                            
+                $('#global_chart_queries_count')               
             );
             break;
         case 'aggregatedWeekdayHours':
-            createaggregatedWeekdayHoursChart(
+            createAggregatedWeekdayHoursChart(
                 logAsDataRecords,
                 firstDate,
                 lastDate,
-                'displayedGlobalChart',
-                $("#globalChart"),                            
-                $("#global_chart_queries_count")               
+                'globalChart',
+                $('#globalChart'),                            
+                $('#global_chart_queries_count')               
             );
             break;
         case 'aggregatedDays':
-            createaggregatedDaysChart(
+            createAggregatedDaysChart(
                 logAsDataRecords,
                 firstDate,
                 lastDate,
-                'displayedGlobalChart',
-                $("#globalChart"),                            
-                $("#global_chart_queries_count")               
+                'globalChart',
+                $('#globalChart'),                            
+                $('#global_chart_queries_count')               
             );
             break;
         case 'aggregatedHours':
-            createaggregatedHoursChart(
+            createAggregatedHoursChart(
                 logAsDataRecords,
                 firstDate,
                 lastDate,
-                'displayedGlobalChart',
-                $("#globalChart"),                            
-                $("#global_chart_queries_count")               
+                'globalChart',
+                $('#globalChart'),                            
+                $('#global_chart_queries_count')               
             );
             break;
         default:            
@@ -495,36 +544,34 @@ function createGlobalChart()
                 logAsDataRecords,
                 firstDate,
                 lastDate,
-                'displayedGlobalChart',
-                $("#globalChart"),
-                $("#global_time_scale"),                
-                $("#global_chart_queries_count"),
+                'globalChart',
+                $('#globalChart'),
+                $('#global_time_scale'),                
+                $('#global_chart_queries_count'),
                 'globalGroupedTimescaleData'                
             );            
     }
 
 };
 
-// Create WORKING chart (with filtered data) (from a click event)  FIXME: this perfectly handles the clikc event, but does not handle the dropdown menu at all.
-function createWorkingChart(evt = null, firstDate = null, lastDate = null, globalChartIdentifier = null){
+// Create WORKING chart (with filtered data) (from a click event)
+function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartIdentifier = null){
 
-    // When `Group By :` dropdown is changed, reload the graph
-    $("#working_time_scale").off('change');
-    $("#working_time_scale").on('change', function(){
-        createWorkingChart();
+    // When `Group By :` dropdown is changed, reload the graph (.off is required because this function is called more than once)
+    //$('#working_time_scale').off('change');
+    $('#working_time_scale').on('change', function(){
+        buildWorkingChart();
     });
 
-    // If this funciton has been called by a click event
+    // If this function has been called by a click event
     if(evt) {
 
 
         //// Get Data from Global Chart (via the click event) ////
 
-        
-        var chartInfos = window[globalChartIdentifier];    
 
         // `getElementsAtEventForMode` is a Chart.js method to find data points on the chart that are nearest to the event evt (e.g. a mouse click or hover).
-        var activePoints = chartInfos.chartComponent.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+        var activePoints = displayedCharts[chartIdentifier].chartObj.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
 
         // This picks the middle point from the array of active (nearest) points.
         var medianPoint = activePoints[Math.floor(activePoints.length/2)];
@@ -535,8 +582,8 @@ function createWorkingChart(evt = null, firstDate = null, lastDate = null, globa
         // Get the median index, which we will use for the source segment's index
         var index = medianPoint.index;
 
-        // Get the source segment's object/array from the chartInfos object.
-        var sourceTimeScaleSegment = chartInfos.timeScaleSegments[index];
+        // Get the source segment's object/array from the chart object.
+        var sourceTimeScaleSegment = displayedCharts[chartIdentifier].timeScaleSegments[index];
 
 
         //// Filter Data ////
@@ -555,8 +602,8 @@ function createWorkingChart(evt = null, firstDate = null, lastDate = null, globa
             window.filteringCriteria.start = sourceTimeScaleSegment;
 
             // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
-            $("#filterStart").text(window.filteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, '')); 
-            $("#filterEnd").text(''); 
+            $('#filterStart').text(window.filteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, '')); 
+            $('#filterEnd').text(''); 
         
         // On the second click, set the end of the date range (working chart)
         } else {
@@ -568,11 +615,27 @@ function createWorkingChart(evt = null, firstDate = null, lastDate = null, globa
             else { window.filteringCriteria.end = sourceTimeScaleSegment;}
 
             // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
-            $("#filterEnd").text(window.filteringCriteria.end.endingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
+            $('#filterEnd').text(window.filteringCriteria.end.endingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
         }
 
-        // Build the filtered records
-        filterData(window.filteringCriteria);
+        // Filter the data by specified criteria (start or end segment date), if not, just copy logAsDataRecords into filteredData
+        filteredData = (window.filteringCriteria.start || window.filteringCriteria.end) ?
+
+            // Return a new array with records that are within the specified criteria
+            _.filter(logAsDataRecords, function(item){
+                if(window.filteringCriteria.start && !window.filteringCriteria.start.matchesWithLowBound(item.dateObj)) {
+                    return false;
+                }
+                if(window.filteringCriteria.end && !window.filteringCriteria.end.matchesWithHighBound(item.dateObj)) {
+                    return false;
+                }
+                return true;
+            })
+
+        : logAsDataRecords;
+
+        // Update the Query Pattern (WHERE clause removed) occurances for filtered records
+        calculateQueryPatternOccurencesTextOn(filteredData, 'filtered');
 
 
         //// Update the filtered Data in the table  ////
@@ -589,16 +652,16 @@ function createWorkingChart(evt = null, firstDate = null, lastDate = null, globa
         filteredData,
         window.filteringCriteria.start ? window.filteringCriteria.start.startingDate : firstDate,
         window.filteringCriteria.end ? window.filteringCriteria.end.endingDate : lastDate,
-        'displayedWorkingChart',
-        $("#workingChart"),
-        $("#working_time_scale"),        
-        $("#working_chart_queries_count"),
+        'workingChart',        
+        $('#workingChart'),
+        $('#working_time_scale'),        
+        $('#working_chart_queries_count'),
         'workingGroupedTimescaleData'        
     );
 
     // Update Onscreen - Show the chart
-    document.getElementById('appliedFilter').style.display = 'block';
-    document.getElementById('working_chart_container').style.display = 'block';
+    $('#appliedFilter').css('display','block');
+    $('#working_chart_container').css('display','block');
 
 }
 
@@ -607,7 +670,7 @@ function createStandardChart(
     data,
     firstDate,
     lastDate,
-    chartIdentifier,            // This chart identifier is created dynamically by Chart.js
+    chartIdentifier,
     $chartCanvas,
     $timeScaleSelector,    
     $queryCountContainer,
@@ -615,17 +678,6 @@ function createStandardChart(
     
 )
 {   
-     /* 
-    // `arguments` is a special variable that holds the calling arguments of this function
-    //var initialArguments = arguments;
-
-   When `Group By :` dropdown is changed  - should not be here - moved to further upstream - this should be made only for working chart
-    $timeScaleSelector.off('change');
-    $timeScaleSelector.on('change', function(){
-        // Re-calling createStandardChart() with same arguments
-        createStandardChart.apply(null, initialArguments);
-    });*/
-    
     // Return X-AXIS time segment specifications (Length in milliseconds / Label Format via a function)
     //   _.padStart() = is adding in a "0" when minute/hour/day/week only has 1 character    
     //   numberOfMillis = number of millieseconds in this segment type
@@ -756,11 +808,12 @@ function createStandardChart(
     // Build the chart's dataset (records per segment in an array) - Using `timeScaleSegments` create a new array, mapping the count of records against time segment. (this also adds in the missing array indexes)
     var chartDatasetData = _(timeScaleSegments).map(function(timeScaleRange, timeScaleIndex){ return countsPerTimeScaleIndex[timeScaleIndex] || 0; }).value();
     
-    // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$("#globalChart")`  ]
+    // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`  ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
     // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js)
-    if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
+    //if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
+    if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
     
     // Instanciate Chart Class
     var chart = new Chart(ctx, {
@@ -848,27 +901,26 @@ function createStandardChart(
         }
     });
 
-    // Push the Chart object to the DOM
-    window[chartIdentifier] = {
-        chartComponent:
-            chart,
-            timeScaleSegments: timeScaleSegments
-    };
+    // Store the Chart object - Needed for chart destruction and click handling
+    displayedCharts[chartIdentifier] = {
+        chartObj: chart,
+        timeScaleSegments: timeScaleSegments
+    }    
 
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
-    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the global and working chart.
-    $chartCanvas.off('click');
-    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
+    // Creates click event on the chart - creates/updates the working chart (.off is required because this function is called more than once)
+    //$chartCanvas.off('click');
+    $chartCanvas.on('click', function(evt) { buildWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
 
-    // Show the Chart
-    document.getElementById('global_chart_container').style.display = 'block';
+    // Display/Hide sections as needed
+    $('#global_chart_container').css('display','block');
 
 }
 
 // Create Aggregated Weekdays Chart
-function createaggregatedWeekdaysChart(
+function createAggregatedWeekdaysChart(
     data,
     firstDate,
     lastDate,
@@ -880,14 +932,14 @@ function createaggregatedWeekdaysChart(
     // Build an array of time segments (Weekday, Mon-Sun) with, a count of records per time segment
     var timeScaleSegments = convertSunSatToMonSun(aggregatedData.dayOfWeek);
 
-    // Build the chart's dataset (records per segment in an array)
+    // Build the chart's dataset (records per segment in an array)  TODO: should i get rid of this variable and put it straight into the datasert
     var chartDatasetData = timeScaleSegments;
 
-     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$("#globalChart")`  ]
+     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`  ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
     // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
-    if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
+    if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
 
         // Instanciate Chart Class
     var chart = new Chart(ctx, {
@@ -944,27 +996,24 @@ function createaggregatedWeekdaysChart(
         }
     });
 
-    // Push the Chart object to the DOM
-    window[chartIdentifier] = {
-        chartComponent:
-            chart,
-            timeScaleSegments: timeScaleSegments
-    };
+    // Store the Chart object - Needed for chart destruction and click handling
+    displayedCharts[chartIdentifier] = {
+        chartObj: chart,
+        timeScaleSegments: timeScaleSegments
+    } 
 
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
-    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the global and working chart.
-    $chartCanvas.off('click');
-    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
-
-    // Show the Chart
-    document.getElementById('global_chart_container').style.display = 'block';
+    // Display/Hide sections as needed
+    $('#global_chart_container').css('display','block');
+    $('#working_chart_container').css('display','none');
+    $('#log_list').css('display','none');
 
 };
 
 // Create Aggregated Weekday Hours Chart - This will be aline graph with multiple datyasets
-function createaggregatedWeekdayHoursChart(
+function createAggregatedWeekdayHoursChart(
     data,
     firstDate,
     lastDate,
@@ -988,13 +1037,13 @@ function createaggregatedWeekdayHoursChart(
     chartDatasetData.saturday = convertSunSatToMonSun(aggregatedData.weekdayHours[6]);
     chartDatasetData.sunday = convertSunSatToMonSun(aggregatedData.weekdayHours[0]);     
 
-     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$("#globalChart")`  ]
+     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`  ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
     // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
-    if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
+    if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
 
-        // Instanciate Chart Class
+    // Instanciate Chart Class
     var chart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -1123,27 +1172,24 @@ function createaggregatedWeekdayHoursChart(
         }
     });
 
-    // Push the Chart object to the DOM
-    window[chartIdentifier] = {
-        chartComponent:
-            chart,
-            timeScaleSegments: timeScaleSegments
-    };
+    // Store the Chart object - Needed for chart destruction and click handling
+    displayedCharts[chartIdentifier] = {
+        chartObj: chart,
+        timeScaleSegments: timeScaleSegments
+    } 
 
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
-    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the global and working chart.
-    $chartCanvas.off('click');
-    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
-
-    // Show the Chart
-    document.getElementById('global_chart_container').style.display = 'block';
+    // Display/Hide sections as needed
+    $('#global_chart_container').css('display','block');
+    $('#working_chart_container').css('display','none');
+    $('#log_list').css('display','none');
 
 };
 
 // Create Aggregated Days Chart
-function createaggregatedDaysChart(
+function createAggregatedDaysChart(
     data,
     firstDate,
     lastDate,
@@ -1158,11 +1204,11 @@ function createaggregatedDaysChart(
     // Build the chart's dataset (records per segment in an array)
     var chartDatasetData = timeScaleSegments;
 
-     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$("#globalChart")`  ]
+     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`  ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
     // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
-    if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
+    if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
 
         // Instanciate Chart Class
     var chart = new Chart(ctx, {
@@ -1219,27 +1265,24 @@ function createaggregatedDaysChart(
         }
     });
 
-    // Push the Chart object to the DOM
-    window[chartIdentifier] = {
-        chartComponent:
-            chart,
-            timeScaleSegments: timeScaleSegments
-    };
+    // Store the Chart object - Needed for chart destruction and click handling
+    displayedCharts[chartIdentifier] = {
+        chartObj: chart,
+        timeScaleSegments: timeScaleSegments
+    } 
 
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
-    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the global and working chart.
-    $chartCanvas.off('click');
-    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
-
-    // Show the Chart
-    document.getElementById('global_chart_container').style.display = 'block';
+    // Display/Hide sections as needed
+    $('#global_chart_container').css('display','block');
+    $('#working_chart_container').css('display','none');
+    $('#log_list').css('display','none');
 
 };
 
 // Create Aggregated Hours Chart
-function createaggregatedHoursChart(
+function createAggregatedHoursChart(
     data,
     firstDate,
     lastDate,
@@ -1254,11 +1297,11 @@ function createaggregatedHoursChart(
     // Build the chart's dataset (records per segment in an array)
     var chartDatasetData = timeScaleSegments;
 
-     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$("#globalChart")` ]
+     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')` ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
     // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
-    if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
+    if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
 
     // Instanciate Chart Class TODO: --> Instanciate Chart 
     var chart = new Chart(ctx, {
@@ -1315,28 +1358,22 @@ function createaggregatedHoursChart(
         }
     });
 
-    // Push the Chart object to the DOM  FIXME: this does notthign that I can see, rem, check, remove, just pushing copies of the chart to the DM and storing it.
-    //FIXME: is the list/table using this?
-    window[chartIdentifier] = {
-        chartComponent:
-            chart,
-            timeScaleSegments: timeScaleSegments
-    };
+    // Store the Chart object - Needed for chart destruction and click handling
+    displayedCharts[chartIdentifier] = {
+        chartObj: chart,
+        timeScaleSegments: timeScaleSegments
+    } 
 
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
-    // Enable a click function on the chart - the click event creates/updates the working chart, this evt is applied to both the global and working chart.
-    $chartCanvas.off('click');
-    $chartCanvas.on('click', function(evt) { createWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
-
-    // Show the Chart
-    document.getElementById('global_chart_container').style.display = 'block';
+    // Display/Hide sections as needed
+    $('#global_chart_container').css('display','block');
+    $('#working_chart_container').css('display','none');
+    $('#log_list').css('display','none');
 
 };
 
-
-//// Update, Filter and conversion section ////
 
 // Convert a day array from (Sun-Sat) to (Mon-Sun)
 function convertSunSatToMonSun(dayArray){
@@ -1344,95 +1381,23 @@ function convertSunSatToMonSun(dayArray){
     return dayArray;
 }
 
-// Build Filtered Data, using Chart filter criteria (Date) (called from working chart)
-function filterData(criteria) {
-
-    // filter the data if a criteria has been specified, if not, just copy logAsDataRecords into filteredData
-    filteredData = (criteria.start || criteria.end) ?
-
-        // Return a new array with records that are within the specified criteria
-        _.filter(logAsDataRecords, function(item){
-            if(criteria.start && !criteria.start.matchesWithLowBound(item.dateObj)) {
-                return false;
-            }
-            if(criteria.end && !criteria.end.matchesWithHighBound(item.dateObj)) {
-                return false;
-            }
-            return true;
-        })
-
-        : logAsDataRecords;
-
-    // Update the Query Pattern (WHERE clause removed) occurances for filtered records
-    calculateQueryPatternOccurencesTextOn(filteredData, 'filtered');
-
-    return;
-}
-
-// TODO: what is this for?
-// TODO: not used anywhere
-// Filter the table entries and update the screen
-// TODO: explain this more, does it do anything, is this something to do with week days?
-function updateTimeChart() {
-    
-    var count = 0;
-
-    var is = list.items;
-    var dayOfWeek;    
-    var hours;
-
-    // Build an array of hours against days, and then set the dayName TODO: not sure exactly what this is for, needs finisihing
-    for (var d = 0; d < 7; d++) {
-        for (var hour in aggregatedData[d]) {
-            aggregatedData[d][hour] = 0;
-        }
-        aggregatedData[d].dayName = dayNames[d];
-    }
-    
-    // Search all List Items (records)
-    for (var i = 0, il = is.length; i < il && i < 300000; i++) {     
-        
-        // If this record has a matching value in any of its columns
-        if (
-            (list.filtered && list.searched && is[i].found && is[i].filtered) ||
-            (list.filtered && !list.searched && is[i].filtered) ||
-            (!list.filtered && list.searched && is[i].found) ||
-            (!list.filtered && !list.searched)
-            ) {
-        
-            // Add this list items values to an object
-            var obj = is[i].values();
-
-            hours = obj.hour;                    // TODO: later I specify hours, but not day, should i so noth can be called by objec
-            dayOfWeek = obj.dateObj.getUTCDay();
-            aggregatedData[dayOfWeek][hours]++;
-
-            // Increment the filtered records counter
-            count++;
-        }
-    }
-
-    // Update Onscreen - number of results
-    $("#search_count").text(count + " results ");
-
-}
-
 
 //// Presentation Section ////
 
 
 // Reset filtered Results
-function resetFilter() {    
+function resetFilter() {
     filteredData = null;
     list.clear();
-    list.add(logAsDataRecords);
-    $("#filterStart").text('');
-    $("#filterEnd").text('');    
+    list.add(logAsDataRecords);       
+    $('#global_time_scale').val('hour'); 
+    $('#working_time_scale').val('hour'); 
+    $('#filterStart').text('');
+    $('#filterEnd').text('');
     $('#appliedFilter').css('display', 'none');
     $('#working_chart_container').css('display', 'none');
-    $("#global_time_scale").val('hour'); 
-    $("#working_time_scale").val('hour'); 
-    createGlobalChart();
+    $('#log_list').css('display','block');
+    buildGlobalChart();
 }
 
 // Query Button - Show
