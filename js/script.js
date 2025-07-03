@@ -496,7 +496,6 @@ function buildGlobalChart()
     var lastDate = _.maxBy(logAsDataRecords, 'dateObj').dateObj;
 
     // When `Group By :` dropdown is changed, reload the graph
-    //$('#global_time_scale').off('change');
     $('#global_time_scale').on('change', function(){
         buildGlobalChart();
     });
@@ -561,8 +560,7 @@ function buildGlobalChart()
 // Create WORKING chart (with filtered data) (from a click event)
 function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartIdentifier = null){
 
-    // When `Group By :` dropdown is changed, reload the graph (.off is required because this function is called more than once)
-    //$('#working_time_scale').off('change'); TODO: tidy this bit up and remove .off()
+    // When `Group By :` dropdown is changed, reload the graph
     $('#working_time_scale').on('change', function(){
         buildWorkingChart();
     });
@@ -914,8 +912,7 @@ function createStandardChart(
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
-    // Creates click event on the chart - creates/updates the working chart (.off is required because this function is called more than once)
-    //$chartCanvas.off('click');
+    // Creates click event on the chart - creates/updates the working chart
     $chartCanvas.on('click', function(evt) { buildWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
 
     // Display/Hide sections as needed    
