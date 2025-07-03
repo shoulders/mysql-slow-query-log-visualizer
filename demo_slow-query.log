@@ -48,7 +48,7 @@ SET timestamp=1744985407;
 SELECT `name`, `value` FROM `chicken_run` WHERE `status` = 'slow';
 # User@Host: shoulders[shoudlers] @ localhost []
 # Thread_id: 72276  Schema: qwarptest_beta  QC_hit: No
-# Query_time: 0.001130  Lock_time: 0.000046  Rows_sent: 72  Rows_examined: 307
+# Query_time: 0.001130  Lock_time: 0.000046  Rows_sent: 64  Rows_examined: 292
 # Rows_affected: 0  Bytes_sent: 0
 SET timestamp=1744985407;
 SELECT `name`, `value` FROM `chicken_run` WHERE `status` = 'fast';
@@ -58,4 +58,17 @@ SELECT `name`, `value` FROM `chicken_run` WHERE `status` = 'fast';
 # Rows_affected: 0  Bytes_sent: 0
 SET timestamp=1744985407;
 SELECT `name`, `value` FROM `chicken_run` WHERE `status` = 'medium';
-
+# Time: 250419  17:22:13
+# User@Host: shoulders[shoulders] @ localhost []
+# Thread_id: 72276  Schema: qwarptest_beta  QC_hit: No
+# Query_time: 13.022718  Lock_time: 0.000151  Rows_sent: 556  Rows_examined: 847
+# Rows_affected: 0  Bytes_sent: 16384
+use `qwarptest_beta`;
+SET timestamp=1745079733;
+SELECT `name`, `value` FROM `chicken_run` WHERE `status` = 'slow';
+# User@Host: shoulders[shoudlers] @ localhost []
+# Thread_id: 72276  Schema: qwarptest_beta  QC_hit: No
+# Query_time: 14.006723  Lock_time: 0.000232  Rows_sent: 169  Rows_examined: 727
+# Rows_affected: 0  Bytes_sent: 0
+SET timestamp=1745079733;
+SELECT `name`, `value` FROM `chicken_run` WHERE `status` = 'fast';
