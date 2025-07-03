@@ -129,8 +129,8 @@ function handleFileSelect(evt) {
         // When the file has been uploaded
         if (e.target.readyState === FileReader.DONE) {
 
-            // Update Onscreen - Show file is now being process
-            $('#log_progress').html('hidden', false);           
+            // Update Onscreen - Show file is now being processed
+            $('#log_progress').prop('hidden', false);           
             
             // Process the log and return number of records
             try {
@@ -140,9 +140,9 @@ function handleFileSelect(evt) {
             }
 
             // Update Onscreen - Show processing is complete   
-            $('#log_progress').prop('hidden', true );
-            $('#information').prop('hidden', true );   
-            $('#log_information').prop('hidden', false );   
+            $('#log_progress').prop('hidden', true);
+            $('#information').prop('hidden', true);   
+            $('#log_information').prop('hidden', false);   
             $('#log_information_numberOfRecords').html(numberOfRecords);       
             $('#log_information_startDate').html(logAsDataRecords[0].date);  
             $('#log_information_endDate').html(logAsDataRecords[numberOfRecords - 1].date);       
@@ -436,8 +436,8 @@ function createList()
     $('#log_list_search').keyup(debounce(displayListItemsCounts, 1000));
 
     // Change display options
-    $('#drop_zone').css('display','none');          // hide the file drag and drop box
-    $('#log_list_container').css('display','block');     // unhide the table section   //TODO: is this the best name - this needed to be hidden??? sort all sections show/hide
+    $('#drop_zone').prop('hidden', true);          // hide the file drag and drop box
+    $('#log_list_container').prop('hidden', false);     // unhide the table section   //TODO: is this the best name - this needed to be hidden??? sort all sections show/hide
     $('#log_list').css('display','table');          // unhide the data table
   
 }
@@ -665,7 +665,7 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
     );
 
     // Update Onscreen - Show the chart
-    $('#working_chart_container').css('display','block');
+    $('#working_chart_container').prop('hidden', false);
 
 }
 
@@ -919,8 +919,8 @@ function createStandardChart(
     $chartCanvas.on('click', function(evt) { buildWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
 
     // Display/Hide sections as needed    
-    $('#global_chart_container').css('display','block');    
-    $('#log_list_container').css('display','block');
+    $('#global_chart_container').prop('hidden', false);    
+    $('#log_list_container').prop('hidden', false);
 
 }
 
@@ -1011,9 +1011,9 @@ function createAggregatedWeekdaysChart(
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
     // Display/Hide sections as needed
-    $('#global_chart_container').css('display','block');
-    $('#working_chart_container').css('display','none');
-    $('#log_list_container').css('display','none');
+    $('#global_chart_container').prop('hidden', false);
+    $('#working_chart_container').prop('hidden', true);
+    $('#log_list_container').prop('hidden', true);
 
 };
 
@@ -1187,9 +1187,9 @@ function createAggregatedWeekdayHoursChart(
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
     // Display/Hide sections as needed
-    $('#global_chart_container').css('display','block');
-    $('#working_chart_container').css('display','none');
-    $('#log_list_container').css('display','none');
+    $('#global_chart_container').prop('hidden', false);
+    $('#working_chart_container').prop('hidden', true);
+    $('#log_list_container').prop('hidden', true);
 
 };
 
@@ -1280,9 +1280,9 @@ function createAggregatedDaysChart(
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
     // Display/Hide sections as needed
-    $('#global_chart_container').css('display','block');
-    $('#working_chart_container').css('display','none');
-    $('#log_list_container').css('display','none');
+    $('#global_chart_container').prop('hidden', false);
+    $('#working_chart_container').prop('hidden', true);
+    $('#log_list_container').prop('hidden', true);
 
 };
 
@@ -1373,9 +1373,9 @@ function createAggregatedHoursChart(
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
     // Display/Hide sections as needed
-    $('#global_chart_container').css('display','block');
-    $('#working_chart_container').css('display','none');
-    $('#log_list_container').css('display','none');
+    $('#global_chart_container').prop('hidden', false);
+    $('#working_chart_container').prop('hidden', true);
+    $('#log_list_container').prop('hidden', true);
 
 };
 
@@ -1402,7 +1402,7 @@ function resetPage() {
     $('#global_time_scale').val('hour'); 
     $('#working_time_scale').val('hour');
     $('#working_chart_container').css('display', 'none');    
-    $('#log_list_container').css('display','block');
+    $('#log_list_container').prop('hidden', false);
     $('#filterStart').text('');
     $('#filterEnd').text('');    
 
