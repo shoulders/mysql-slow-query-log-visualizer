@@ -129,9 +129,6 @@ function handleFileSelect(evt) {
         // When the file has been uploaded
         if (e.target.readyState === FileReader.DONE) {
 
-            // Update Onscreen - Show file is now being processed
-            $('#log_progress').prop('hidden', false);           
-            
             // Process the log and return number of records
             try {
                 var numberOfRecords = processLog(e.target.result);                
@@ -139,8 +136,7 @@ function handleFileSelect(evt) {
                 console.log(error);
             }
 
-            // Update Onscreen - Show processing is complete   
-            $('#log_progress').prop('hidden', true);
+            // Update Onscreen - Show processing is complete               
             $('#information').prop('hidden', true);   
             $('#log_information').prop('hidden', false);   
             $('#log_information_numberOfRecords').html(numberOfRecords);       
@@ -330,17 +326,6 @@ function processLog(logFileTextBlob) {
             i++;
 
         }
-
-        // Update Onscreen - Progress meter - TODO: This value does not get updated onscreen during loop due to JavaScript limitation
-        $('#log_progress').html('Progress : ' + (r / logAsTimeGroups.length) * 100 + '%');
-
-        //TODO: progress timer
-        /*setTimeout(() => {
-            console.log("Paused for 1 milisecond seconds");
-        }, 1);*/
-
-        // Upload progress by bytes //TODO:
-        //$('log_progress').html('Progress : '+Math.round(currentStartingBytesOffset*100/f.size) + '%';
 
     }
 
