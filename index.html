@@ -27,7 +27,7 @@
             <ul>
                 <li><span class="log_information_title">Server: </span><span id="server_details">Not available</span></li>
                 <li><span class="log_information_title">File: </span><span id="log_information_file">Not available</span></li>
-                <li><span class="log_information_title">Number Of Entries: </span><span id="log_information_numberOfEntries">Not available</span></li>
+                <li><span class="log_information_title">Records: </span><span id="log_information_numberOfRecords">Not available</span></li>
                 <li><span class="log_information_title">Start Date: </span><span id="log_information_startDate">Not available</span></li>
                 <li><span class="log_information_title">End Date: </span><span id="log_information_endDate">Not available</span></li>
             </ul>
@@ -35,7 +35,7 @@
 
         <!-- Global Chart -->
         <div id="global_chart_container" class="chart_container" style="max-height: 400px; margin-bottom: 40px;" hidden><!-- sort dimensions -->
-            <div><button id="resetFilter" onclick="resetFilter();">Reset Filter</button></div>
+            <div><button id="resetFilter" onclick="resetPage();">Reset Filter</button></div>
             <h2>GLOBAL CHART</h2>
             <div>Group By : <select id="global_time_scale">
                     <option value="month">Month</option>
@@ -69,22 +69,19 @@
             </div>
             <p id="working_chart_queries_count"></p>
             <canvas id="workingChart" class="chart" width="1280px" height="600"></canvas>
-
+            <div id="appliedFilter" style="margin-top: 100px; margin-bottom: 25px;">Chart filtering : start = <span id="filterStart"></span>, end = <span id="filterEnd"></span></div>
         </div>
 
-        <div id="appliedFilter" style="display: none; margin-top: 100px; margin-bottom: 25px;">Chart filtering : start = <span id="filterStart"></span>, end = <span id="filterEnd"></span></div>
-
         <!-- Table -->
-        <div id="query_results" style="display:none"><!-- maybe use disabled-->
+        <div id="log_list_container" style="display:none">
             <table id="log_list">
                 <thead class="header">
                     <tr id="search">
                         <th colspan="10">
                             <span class="list_search">
-                                <span id="search_count"></span>
+                                Records: (Filtered: <span id="list_items_count_filtered"></span> / Visible: <span id="list_items_count_visible"></span> / Total: <span id="list_items_count_total"></span>)
                                 <label for="log_list_search">Filter:</label>
                                 <input id="log_list_search" class="search" />
-                                <input type="checkbox" class="reverseSearch" />Invert
                             </span>
                         </th>
                     </tr>

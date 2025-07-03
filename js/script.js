@@ -48,7 +48,10 @@ var filteredData = [];
 var list;
 
 // Actively display charts data - required for chart destruction and click handling
-var displayedCharts = {}
+var displayedCharts = {};
+
+// Working Chart Filtering Criteria
+var wcFilteringCriteria = {};
 
 // Weekdays against ther date() reference number.
 var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -131,7 +134,7 @@ function handleFileSelect(evt) {
             
             // Process the log and return number of records
             try {
-                var numberOfEntries = processLog(e.target.result);                
+                var numberOfRecords = processLog(e.target.result);                
             } catch (error) {
                 console.log(error);
             }
@@ -140,9 +143,9 @@ function handleFileSelect(evt) {
             $('#log_progress').prop('hidden', true );
             $('#information').prop('hidden', true );   
             $('#log_information').prop('hidden', false );   
-            $('#log_information_numberOfEntries').html(numberOfEntries);       
+            $('#log_information_numberOfRecords').html(numberOfRecords);       
             $('#log_information_startDate').html(logAsDataRecords[0].date);  
-            $('#log_information_endDate').html(logAsDataRecords[numberOfEntries - 1].date);       
+            $('#log_information_endDate').html(logAsDataRecords[numberOfRecords - 1].date);       
 
             // Change screen from file dropbox, create and display the table         
             try {
@@ -412,11 +415,12 @@ function createList()
     // Enable the list
     var options = {
         item: 'log_list_item',
-        maxVisibleItemsCount: 200,
+        page: 100,                                      // Limits to 5 visible itmes. This per page but pagination is off.
+        //pagination: false'                            // This causes an error
+        searchDelay: 1000,                              // Delay search/filter by XXXms, after user stops typing
         valueNames: Object.keys(logAsDataRecords[0]),   // list.js now need a list of data fields
     };    
     list = new List('log_list', options, logAsDataRecords);    
-    
 
     // This enables the copy to clipboard buttons
     new ClipboardJS('.copyToClipboardBtn', {
@@ -425,60 +429,60 @@ function createList()
         }
     });
 
-    // When something is changed in the search box, update the table
-    $('#log_list_search').keyup(updateListAfterFilterBoxChange);
+    // Update Onscreen - Number of list records
+    displayListItemsCounts();
+
+    // When input in the filter box, update the item counts (has a delay to prevent over searching)
+    $('#log_list_search').keyup(debounce(displayListItemsCounts, 1000));
 
     // Change display options
     $('#drop_zone').css('display','none');          // hide the file drag and drop box
+    $('#log_list_container').css('display','block');     // unhide the table section   //TODO: is this the best name - this needed to be hidden??? sort all sections show/hide
     $('#log_list').css('display','table');          // unhide the data table
-    $('#query_results').css('display','block');     // unhide the query results
+  
 }
 
-// Filter the table entries and update the screen - this is run when a keyup in the filter box is deteted
+// Update Onscreen - Number of records
+function displayListItemsCounts(){    
+    $('#list_items_count_filtered').html(list.matchingItems.length);
+    $('#list_items_count_visible').html(list.visibleItems.length);
+    $('#list_items_count_total').html(list.items.length);           //TODO: the values i get back arre worn. do i need to handel filtered and normal results.
+}           // https://chatgpt.com/c/68654f57-5d78-8003-bc54-d7c72e9838e5
+
+// Debounce function - Prevents access a function until no input for a number of milliseconds.
+// Only the last function will execute, they are not all delayed and stacked for execution.
+function debounce(func, delay) {
+  let timeoutId;
+  return function(...args) {
+    clearTimeout(timeoutId); // Clear previous timeout
+    timeoutId = setTimeout(() => {
+      func.apply(this, args); // Call the function with the latest args
+    }, delay);
+  };
+}
+
+/* Updates number of result shown in filtered list (works but I dont use it)
 function updateListAfterFilterBoxChange() {
-    
-    var count = 0;
 
-    var is = list.items;
-    var dayOfWeek;    
-    var hours;
-
-    // Build an array of hours against days, and then set the dayName TODO: not sure exactly what this is for, needs finisihing
-    // TODO: I already have done this above
-    for (var d = 0; d < 7; d++) {
-        for (var hour in aggregatedData[d]) {
-            aggregatedData[d][hour] = 0;
-        }
-        aggregatedData[d].dayName = dayNames[d];
-    }
-    
-    // Search all List Items (records)
-    for (var i = 0, il = is.length; i < il && i < 300000; i++) {     
-        
-        // If this record has a matching value in any of its columns
+    // Search all List Items (records) anf if a match is found in any column, count the record once
+    var count = 0;    
+    var listLength = list.items.length;
+    for (var i = 0;  i < listLength; i++) {    
         if (
-            (list.filtered && list.searched && is[i].found && is[i].filtered) ||
-            (list.filtered && !list.searched && is[i].filtered) ||
-            (!list.filtered && list.searched && is[i].found) ||
+            (list.filtered && list.searched && list.items[i].found && list.items[i].filtered) ||
+            (list.filtered && !list.searched && list.items[i].filtered) ||
+            (!list.filtered && list.searched && list.items[i].found) ||
             (!list.filtered && !list.searched)
-            ) {
-        
-            // Add this list items values to an object
-            var obj = is[i].values();
-
-            hours = obj.hour;                    // TODO: later I specify hours, but not day, should i so noth can be called by objec
-            dayOfWeek = obj.dateObj.getUTCDay();
-            aggregatedData[dayOfWeek][hours]++;
-
-            // Increment the filtered records counter
+        )
+        {      
+            // Increment the filtered records counter  
             count++;
         }
     }
 
     // Update Onscreen - number of results
-    $('#search_count').text(count + " results ");
-
-}
+    $("#search_count").text(count + " results ");
+}*/
 
 
 //// Creating Sections ////
@@ -558,7 +562,7 @@ function buildGlobalChart()
 function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartIdentifier = null){
 
     // When `Group By :` dropdown is changed, reload the graph (.off is required because this function is called more than once)
-    //$('#working_time_scale').off('change');
+    //$('#working_time_scale').off('change'); TODO: tidy this bit up and remove .off()
     $('#working_time_scale').on('change', function(){
         buildWorkingChart();
     });
@@ -644,6 +648,7 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
         // Clear and Update the table/list with the filtered records
         list.clear();   
         list.add(filteredData);
+        displayListItemsCounts();
 
     }
 
@@ -660,7 +665,6 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
     );
 
     // Update Onscreen - Show the chart
-    $('#appliedFilter').css('display','block');
     $('#working_chart_container').css('display','block');
 
 }
@@ -914,8 +918,9 @@ function createStandardChart(
     //$chartCanvas.off('click');
     $chartCanvas.on('click', function(evt) { buildWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
 
-    // Display/Hide sections as needed
-    $('#global_chart_container').css('display','block');
+    // Display/Hide sections as needed    
+    $('#global_chart_container').css('display','block');    
+    $('#log_list_container').css('display','block');
 
 }
 
@@ -1008,7 +1013,7 @@ function createAggregatedWeekdaysChart(
     // Display/Hide sections as needed
     $('#global_chart_container').css('display','block');
     $('#working_chart_container').css('display','none');
-    $('#log_list').css('display','none');
+    $('#log_list_container').css('display','none');
 
 };
 
@@ -1184,7 +1189,7 @@ function createAggregatedWeekdayHoursChart(
     // Display/Hide sections as needed
     $('#global_chart_container').css('display','block');
     $('#working_chart_container').css('display','none');
-    $('#log_list').css('display','none');
+    $('#log_list_container').css('display','none');
 
 };
 
@@ -1277,7 +1282,7 @@ function createAggregatedDaysChart(
     // Display/Hide sections as needed
     $('#global_chart_container').css('display','block');
     $('#working_chart_container').css('display','none');
-    $('#log_list').css('display','none');
+    $('#log_list_container').css('display','none');
 
 };
 
@@ -1370,7 +1375,7 @@ function createAggregatedHoursChart(
     // Display/Hide sections as needed
     $('#global_chart_container').css('display','block');
     $('#working_chart_container').css('display','none');
-    $('#log_list').css('display','none');
+    $('#log_list_container').css('display','none');
 
 };
 
@@ -1385,18 +1390,23 @@ function convertSunSatToMonSun(dayArray){
 //// Presentation Section ////
 
 
-// Reset filtered Results
-function resetFilter() {
+// Reset page without having to refresh and reload log file
+function resetPage() {    
+    
+    // Restore all records to the list  
     filteredData = null;
     list.clear();
-    list.add(logAsDataRecords);       
+    list.add(logAsDataRecords);
+    
+    // Update Onscreen - Reconfigure Visible assets
     $('#global_time_scale').val('hour'); 
-    $('#working_time_scale').val('hour'); 
+    $('#working_time_scale').val('hour');
+    $('#working_chart_container').css('display', 'none');    
+    $('#log_list_container').css('display','block');
     $('#filterStart').text('');
-    $('#filterEnd').text('');
-    $('#appliedFilter').css('display', 'none');
-    $('#working_chart_container').css('display', 'none');
-    $('#log_list').css('display','block');
+    $('#filterEnd').text('');    
+
+    // Rebuild Global Chart
     buildGlobalChart();
 }
 
