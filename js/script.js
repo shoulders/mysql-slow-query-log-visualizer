@@ -58,8 +58,8 @@ var list;
 // Actively display charts data - required for chart destruction and click handling
 var displayedCharts = {};
 
-// Working Chart Filtering Criteria
-var wcFilteringCriteria = {};
+// Working Chart Filtering Criteria - This allows for differenation between first and second click
+var wcFilteringCriteria = { even: 0, start: null, end: null };
 
 // Weekdays against ther date() reference number.
 var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -663,44 +663,41 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
         //// Filter Data ////
 
         
-        // Ensuring filtering criteria is defined on the window object (if not set, then first click will be implied)
-        window.filteringCriteria = window.filteringCriteria || { even: 0, start: null, end: null };
-
         // Determine whether it's the "start date" (first click) or the "end date" (second click).
-        window.filteringCriteria.even = (window.filteringCriteria.even + 1) % 2;
+        wcFilteringCriteria.even = (wcFilteringCriteria.even + 1) % 2;
 
         // On the first click, set the start of the date range (working chart)
-        if(window.filteringCriteria.even === 1){
+        if(wcFilteringCriteria.even === 1){
 
             // Set start of filtering range
-            window.filteringCriteria.start = sourceTimeScaleSegment;
+            wcFilteringCriteria.start = sourceTimeScaleSegment;
 
             // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
-            $('#filterStart').text(window.filteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, '')); 
+            $('#filterStart').text(wcFilteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, '')); 
             $('#filterEnd').text(''); 
         
         // On the second click, set the end of the date range (working chart)
         } else {
 
             // If the start date is greater than the end date, set end to be the same as start (same as double clickling)
-            if(window.filteringCriteria.start.startingDate > sourceTimeScaleSegment.startingDate) { window.filteringCriteria.end = window.filteringCriteria.start }
+            if(wcFilteringCriteria.start.startingDate > sourceTimeScaleSegment.startingDate) { wcFilteringCriteria.end = wcFilteringCriteria.start }
 
             // Set end of filtering range (normally)
-            else { window.filteringCriteria.end = sourceTimeScaleSegment;}
+            else { wcFilteringCriteria.end = sourceTimeScaleSegment;}
 
             // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
-            $('#filterEnd').text(window.filteringCriteria.end.endingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
+            $('#filterEnd').text(wcFilteringCriteria.end.endingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
         }
 
         // Filter the data by specified criteria (start or end segment date), if not, just copy logAsDataRecords into filteredData
-        filteredData = (window.filteringCriteria.start || window.filteringCriteria.end) ?
+        filteredData = (wcFilteringCriteria.start || wcFilteringCriteria.end) ?
 
             // Return a new array with records that are within the specified criteria
             _.filter(logAsDataRecords, function(item){
-                if(window.filteringCriteria.start && !window.filteringCriteria.start.matchesWithLowBound(item.dateObj)) {
+                if(wcFilteringCriteria.start && !wcFilteringCriteria.start.matchesWithLowBound(item.dateObj)) {
                     return false;
                 }
-                if(window.filteringCriteria.end && !window.filteringCriteria.end.matchesWithHighBound(item.dateObj)) {
+                if(wcFilteringCriteria.end && !wcFilteringCriteria.end.matchesWithHighBound(item.dateObj)) {
                     return false;
                 }
                 return true;
@@ -725,8 +722,8 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
     // Create/update the working chart with the filtered data
     createStandardChart(
         filteredData,
-        window.filteringCriteria.start ? window.filteringCriteria.start.startingDate : firstDate,
-        window.filteringCriteria.end ? window.filteringCriteria.end.endingDate : lastDate,
+        wcFilteringCriteria.start ? wcFilteringCriteria.start.startingDate : firstDate,
+        wcFilteringCriteria.end ? wcFilteringCriteria.end.endingDate : lastDate,
         'workingChart',        
         $('#workingChart'),
         $('#working_time_scale'),        
@@ -878,7 +875,9 @@ function createStandardChart(
 
     // Build an array of time segments with, a count of records per time segment (only segments with records will get a key/pair value, i.e. some indexes will be missing)
     var countsPerTimeScaleIndex = _(window[groupedDataVariableName]).mapValues('length').value();
-
+    console.log(window[groupedDataVariableName]);
+    debugger;
+    
     // Build the chart's dataset (records per segment in an array) - Using `timeScaleSegments` create a new array, mapping the count of records against time segment. (this also adds in the missing array indexes)
     var chartDatasetData = _(timeScaleSegments).map(function(timeScaleRange, timeScaleIndex){ return countsPerTimeScaleIndex[timeScaleIndex] || 0; }).value();
     
