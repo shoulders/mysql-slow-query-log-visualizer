@@ -455,7 +455,7 @@ function createList()
         })
     });
 
-    // Update Onscreen - Number of list records  //TODO: do i need to re-comment here - or should i just have function dhave the descrition
+    // Update Onscreen - Number of list records
     displayListItemsCounts();
 
     // Update Onscreen - Prev and Next buttons
@@ -491,7 +491,7 @@ function displayListItemsCounts(){
 // Prev/Next Button Handling
 function prevNextButtons(){
 
-    // Current page number TODO: the lines below work (list.i is a record index)
+    // Current page number (both of these work)
     let currentPage = Math.ceil(list.i / list.page);
     //let currentPage = +$('ul.pagination li.active a.page').attr('data-i');
 
@@ -1369,7 +1369,7 @@ function createAggregatedHoursChart(
     // If the chart already exists, destroy it
     if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
 
-    // Instanciate Chart Class TODO: --> Instanciate Chart 
+    // Instanciate Chart
     var chart = new Chart(ctx, {
         type: 'bar',
         data: {
