@@ -1,4 +1,6 @@
 /*
+https://github.com/javve/list.js/blob/master/LICENSE
+
 The MIT License (MIT)
 
 Copyright (c) 2011-2018 Jonny Strömberg, jonnystromberg.com
@@ -21,6 +23,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+
 var List;List =
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({

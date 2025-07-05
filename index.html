@@ -32,7 +32,7 @@
         </div>
 
         <!-- Global Chart -->
-        <div id="global_chart_container" class="chart_container" style="max-height: 400px; margin-bottom: 40px;" hidden><!-- sort dimensions -->
+        <div id="global_chart_container" class="chart_container" style="max-height: 400px; margin-bottom: 40px;" hidden><!-- TODO: sort dimensions -->
             <div><button id="resetFilter" onclick="resetPage();">Reset Filter</button></div>
             <h2>GLOBAL CHART</h2>
             <div>Group By : <select id="global_time_scale">
@@ -54,7 +54,7 @@
         <br /><br />
 
         <!-- Working Chart -->
-        <div id="working_chart_container" class="chart_container" style="max-height: 400px; margin-bottom: 40px;" hidden><!-- sort dimensions -->
+        <div id="working_chart_container" class="chart_container" style="max-height: 400px; margin-bottom: 40px;" hidden><!-- TODO: sort dimensions -->
             <h2>WORKING CHART</h2>
             <div>
                 Group By : <select id="working_time_scale">
@@ -77,10 +77,14 @@
                     <tr id="search">
                         <th colspan="10">
                             <span class="list_search">
-                                Records: (Filtered: <span id="list_items_count_filtered"></span> / Visible: <span id="list_items_count_visible"></span> / Total: <span id="list_items_count_total"></span>)
+                                Showing <span id="list_items_count_showing"></span> of <span id="list_items_count_showingOf"></span> records
+                                (Filtered: <span id="list_items_count_filtered"></span> / Visible: <span id="list_items_count_visible"></span> / Total: <span id="list_items_count_total"></span>)
                                 <label for="log_list_search">Filter:</label>
                                 <input id="log_list_search" class="search" />
                             </span>
+                            <div class="pagination-container">
+                                <a class="prevNextButton pagination-prev page" href="#" hidden>&lt;</a><ul class="pagination paginationTop"></ul><a class="prevNextButton pagination-next page" href="#" hidden>&gt;</a>
+                            </div>
                         </th>
                     </tr>
                     <tr>
@@ -110,7 +114,14 @@
                         <td class="qs"><pre class="query_with_stripped_where_clauses"></pre></td>
                     </tr>
                 </tbody>
-                <tfoot></tfoot>
+                <tfoot>
+                    <th colspan="10">
+                        <div class="pagination-container">
+                            <a class="prevNextButton pagination-prev page" href="#" hidden>&lt;</a><ul class="pagination paginationBottom"></ul><a class="prevNextButton pagination-next page" href="#" hidden>&gt;</a>
+                        </div>
+                        <div id="no-records" hidden>No Records</div>
+                    </th>
+                </tfoot>
             </table>
         </div>
         <p class="credits">MySQL Slow Query Log Visualizer</p>

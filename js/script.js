@@ -41,6 +41,14 @@ OTHER DEALINGS IN THE SOFTWARE.
 // Processed Log Records
 var logAsDataRecords = [];
 
+// Number of Log Records
+var logAsDataRecordsCount = 0;
+
+// First and Last date of the records
+var logAsDataFirstDateObj = {};
+var logAsDataLastDateObj = {};
+var logAsDataLastDateIndex = 0;
+
 // Processed Log Records (filtered)
 var filteredData = [];
 
@@ -131,17 +139,18 @@ function handleFileSelect(evt) {
 
             // Process the log and return number of records
             try {
-                var numberOfRecords = processLog(e.target.result);                
+                processLog(e.target.result);                
             } catch (error) {
                 console.log(error);
             }
 
             // Update Onscreen - Show processing is complete               
             $('#information').prop('hidden', true);   
-            $('#log_information').prop('hidden', false);   
-            $('#log_information_numberOfRecords').html(numberOfRecords);       
+            $('#log_information').prop('hidden', false);
+            $('#log_information_logAsDataRecordsCount').html(logAsDataRecordsCount);       
             $('#log_information_startDate').html(logAsDataRecords[0].date);  
-            $('#log_information_endDate').html(logAsDataRecords[numberOfRecords - 1].date);       
+            $('#log_information_endDate').html(logAsDataRecords[logAsDataLastDateIndex].date);
+            logAsDataRecordsCount ? $('#no-records').prop('hidden', true) : $('#no-records').prop('hidden', false);
 
             // Change screen from file dropbox, create and display the table         
             try {
@@ -204,13 +213,8 @@ function processLog(logFileTextBlob) {
         // Remove the `# Time:` from this record
         logAsTimeGroups[t] = logAsTimeGroups[t].replace(/# Time: .*\n/, '');
 
-        // Generate an ISO 8601 format date from `# Time:` statement
-        // (YYYY-MM-DDTHH:mm:ss.sssZ)
+        // Generate an ISO 8601 format date from `# Time:` statement (YYYY-MM-DDTHH:mm:ss.sssZ)
         var date_iso = local_time.match(/([0-9]{2})([0-9]{2})([0-9]{2})[ ]{1,2}([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);        
-
-        //if(date_iso[4].length === 1) {date_iso[4] = '0' + date_iso[4];} // Add missing 0 onto the hours when needed //TODO: remove this line
-        //date_iso[4] = _.padStart(date_iso[4], 2, '0') // Add missing 0 onto the hours when needed //TODO: remove this line
-
         date_iso = '20' + date_iso[1] + '-' + date_iso[2] + '-' + date_iso[3] + 'T' + _.padStart(date_iso[4], 2, '0') + ':' + date_iso[5] + ':' + date_iso[6] + '.000Z';
 
         // Create Date Object (UTC time)
@@ -341,8 +345,20 @@ function processLog(logFileTextBlob) {
     // Count and Add all the occurances of a record's Query Pattern (WHERE clause removed) (Global and Filtered) to it's record
     calculateQueryPatternOccurencesTextOn(logAsDataRecords, 'both');
 
-    // Finished building log, now return the number of records
-    return logAsDataRecords.length;
+    // Get the number of records
+    logAsDataRecordsCount = logAsDataRecords.length;
+
+    // Get date range of the records (assumes records in order = quick)
+    logAsDataFirstDateObj = logAsDataRecords[0].dateObj;
+    logAsDataLastDateIndex = logAsDataRecordsCount - 1;
+    logAsDataLastDateObj = logAsDataRecords[logAsDataLastDateIndex].dateObj;
+
+    /* Get date range of the records (checks every record = slow)
+    logAsDataFirstDateObj = _.minBy(logAsDataRecords, 'dateObj').dateObj;
+    logAsDataLastDateObj = _.maxBy(logAsDataRecords, 'dateObj').dateObj;*/
+    
+    // Finished building log, 
+    return;
 
 }
 
@@ -397,15 +413,53 @@ function calculateQueryPatternOccurencesTextOn(dataItems, target) {
 // Create the table, hide `file drop` area and enable the `data table`
 function createList()
 {
+    // Delay used in debounced functions
+    let debounceDelay = 1000;
+
+    // Get the item template from the DOM, and then correct the placeholder - This avoids an unwanted empty record.
+    let listItemTemplate = '<tr>' + $('#log_list_item').html() + '</tr>';
+    $('#log_list_item').remove();
+
     // Enable the list
     var options = {
-        item: 'log_list_item',
-        page: 100,                                      // Limits to 5 visible itmes. This per page but pagination is off.
-        //pagination: false'                            // This causes an error
-        searchDelay: 1000,                              // Delay search/filter by XXXms, after user stops typing
+        item: listItemTemplate,
+        searchDelay: debounceDelay,                     // Delay search/filter by XXXms, after user stops typing
         valueNames: Object.keys(logAsDataRecords[0]),   // list.js now need a list of data fields
+        page: 2,                                       // This per page so pagination is off, Limits visible items
+        pagination: [{                                  // If you do not have the relevant HTML inside the list container then you will get errors
+            paginationClass: 'paginationTop',           // The default class is 'pagination',
+            innerWindow: 2,
+            outerWindow: 2,
+            }, {
+            paginationClass: 'paginationBottom',
+            innerWindow: 2,
+            outerWindow: 2,
+        }]
     };    
-    list = new List('log_list', options, logAsDataRecords);    
+    list = new List('log_list', options, logAsDataRecords);
+
+
+    // This fires after pagination, search, or filtering.#
+    // Specifically, after List.js finishes updating its internal data, but not necessarily after the browser has finished rendering the DOM.
+    list.on('updated', function () {
+
+        // Wait until the next paint cycle
+        requestAnimationFrame(function () {
+
+            // Update Onscreen - Number of list records
+            displayListItemsCounts();
+
+            // Update Onscreen - Prev and Next buttons
+            prevNextButtons();
+
+        })
+    });
+
+    // Update Onscreen - Number of list records  //TODO: do i need to re-comment here - or should i just have function dhave the descrition
+    displayListItemsCounts();
+
+    // Update Onscreen - Prev and Next buttons
+    prevNextButtons();
 
     // This enables the copy to clipboard buttons
     new ClipboardJS('.copyToClipboardBtn', {
@@ -414,26 +468,71 @@ function createList()
         }
     });
 
-    // Update Onscreen - Number of list records
-    displayListItemsCounts();
-
-    // When input in the filter box, update the item counts (has a delay to prevent over searching)
-    $('#log_list_search').keyup(debounce(displayListItemsCounts, 1000));
+    // When input in the filter box, update the item counts (has a delay to prevent over searching) (not currently used/needed keep for reference in using debounce)
+    //$('#log_list_search').keyup(debounce(displayListItemsCounts, debounceDelay));
 
     // Change display options
-    $('#drop_zone').prop('hidden', true);          // hide the file drag and drop box
-    $('#log_list_container').prop('hidden', false);     // unhide the table section   //TODO: is this the best name - this needed to be hidden??? sort all sections show/hide
+    $('#drop_zone').prop('hidden', true);           // hide the file drag and drop box
+    $('#log_list_container').prop('hidden', false); // unhide the table section
     $('#log_list').css('display','table');          // unhide the data table
   
 }
 
 // Update Onscreen - Number of records
 function displayListItemsCounts(){    
+    list.matchingItems.length ? $('#no-records').prop('hidden', true) : $('#no-records').prop('hidden', false);
     $('#list_items_count_filtered').html(list.matchingItems.length);
     $('#list_items_count_visible').html(list.visibleItems.length);
-    $('#list_items_count_total').html(list.items.length);           //TODO: the values i get back arre worn. do i need to handel filtered and normal results.
-}           // https://chatgpt.com/c/68654f57-5d78-8003-bc54-d7c72e9838e5
+    $('#list_items_count_total').html(list.items.length);
+    $('#list_items_count_showing').html(list.visibleItems.length);
+    $('#list_items_count_showingOf').html(list.matchingItems.length);
+}
 
+// Prev/Next Button Handling
+function prevNextButtons(){
+
+    // Current page number TODO: the lines below work (list.i is a record index)
+    let currentPage = Math.ceil(list.i / list.page);
+    //let currentPage = +$('ul.pagination li.active a.page').attr('data-i');
+
+    // Last page number
+    let totalPages = Math.ceil(list.matchingItems.length / list.page);
+
+    // Make the Prev and Next buttons disabled on first and last pages accordingl
+    // First Page
+    if (currentPage == 1) {
+        $(".pagination-prev").prop('hidden', true);
+        $(".pagination-next").prop('hidden', false);
+    }
+    // Last Page
+    else if (currentPage == totalPages) {
+        $(".pagination-prev").prop('hidden', false);
+        $(".pagination-next").prop('hidden', true);
+    }
+    // Middle Page(s)
+    else { 
+        $(".pagination-prev").prop('hidden', false);
+        $(".pagination-next").prop('hidden', false);
+    }
+
+    // Hide pagination if there one or less pages to show
+    if (list.matchingItems.length <= list.page) { 
+        $(".pagination-container").hide();
+    } else {
+        $(".pagination-container").show();
+    }
+
+    // Disable link on active page number
+    $('ul.pagination a.page').attr('href', '#').css('cursor', '');
+    $('ul.pagination li.active a.page').removeAttr('href').off('click').css('cursor', 'default');
+
+    // Add Click event to the Prev and Next buttons
+    $('.pagination-prev').attr('data-i', currentPage - 1).attr('data-page', list.page);
+    $('.pagination-next').attr('data-i', currentPage + 1).attr('data-page', list.page);
+
+}
+
+// (Not currently used)
 // Debounce function - Prevents access a function until no input for a number of milliseconds.
 // Only the last function will execute, they are not all delayed and stacked for execution.
 function debounce(func, delay) {
@@ -476,10 +575,6 @@ function updateListAfterFilterBoxChange() {
 // Create the GLOBAL chart (using logAsDataRecords as source data)
 function buildGlobalChart()
 {
-    // Get date range of the records (date() uses local time) TODO: should these dats be global
-    var firstDate = _.minBy(logAsDataRecords, 'dateObj').dateObj;
-    var lastDate = _.maxBy(logAsDataRecords, 'dateObj').dateObj;
-
     // When `Group By :` dropdown is changed, reload the graph
     $('#global_time_scale').on('change', function(){
         buildGlobalChart();
@@ -490,8 +585,6 @@ function buildGlobalChart()
         case 'aggregatedWeekdays':
             createAggregatedWeekdaysChart(
                 logAsDataRecords,
-                firstDate,
-                lastDate,
                 'globalChart',
                 $('#globalChart'),                            
                 $('#global_chart_queries_count')               
@@ -500,8 +593,6 @@ function buildGlobalChart()
         case 'aggregatedWeekdayHours':
             createAggregatedWeekdayHoursChart(
                 logAsDataRecords,
-                firstDate,
-                lastDate,
                 'globalChart',
                 $('#globalChart'),                            
                 $('#global_chart_queries_count')               
@@ -510,8 +601,6 @@ function buildGlobalChart()
         case 'aggregatedDays':
             createAggregatedDaysChart(
                 logAsDataRecords,
-                firstDate,
-                lastDate,
                 'globalChart',
                 $('#globalChart'),                            
                 $('#global_chart_queries_count')               
@@ -520,18 +609,16 @@ function buildGlobalChart()
         case 'aggregatedHours':
             createAggregatedHoursChart(
                 logAsDataRecords,
-                firstDate,
-                lastDate,
                 'globalChart',
                 $('#globalChart'),                            
                 $('#global_chart_queries_count')               
             );
             break;
-        default:            
+        default:      
             createStandardChart(
                 logAsDataRecords,
-                firstDate,
-                lastDate,
+                logAsDataFirstDateObj,
+                logAsDataLastDateObj,
                 'globalChart',
                 $('#globalChart'),
                 $('#global_time_scale'),                
@@ -700,7 +787,7 @@ function createStandardChart(
 
     // Sets the segment type based on the users dropdown selection
     var currentTimeScale = timeScaleSpecification[$timeScaleSelector.val()];
-
+    
     // X-AXIS Segements - Create an array which holds all of the calculated time segements, their start time, end time, X-AXIS label and test functions
     var timeScaleSegments = _(
 
@@ -909,8 +996,6 @@ function createStandardChart(
 // Create Aggregated Weekdays Chart
 function createAggregatedWeekdaysChart(
     data,
-    firstDate,
-    lastDate,
     chartIdentifier,
     $chartCanvas,  
     $queryCountContainer    
@@ -925,7 +1010,7 @@ function createAggregatedWeekdaysChart(
      // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`  ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
-    // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
+    // If the chart already exists, destroy it
     if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
 
         // Instanciate Chart Class
@@ -1002,8 +1087,6 @@ function createAggregatedWeekdaysChart(
 // Create Aggregated Weekday Hours Chart - This will be aline graph with multiple datyasets
 function createAggregatedWeekdayHoursChart(
     data,
-    firstDate,
-    lastDate,
     chartIdentifier,
     $chartCanvas,  
     $queryCountContainer    
@@ -1027,7 +1110,7 @@ function createAggregatedWeekdayHoursChart(
      // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`  ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
-    // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
+    // If the chart already exists, destroy it
     if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
 
     // Instanciate Chart Class
@@ -1178,8 +1261,6 @@ function createAggregatedWeekdayHoursChart(
 // Create Aggregated Days Chart
 function createAggregatedDaysChart(
     data,
-    firstDate,
-    lastDate,
     chartIdentifier,
     $chartCanvas,  
     $queryCountContainer    
@@ -1194,7 +1275,7 @@ function createAggregatedDaysChart(
      // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`  ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
-    // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
+    // If the chart already exists, destroy it
     if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
 
         // Instanciate Chart Class
@@ -1271,8 +1352,6 @@ function createAggregatedDaysChart(
 // Create Aggregated Hours Chart
 function createAggregatedHoursChart(
     data,
-    firstDate,
-    lastDate,
     chartIdentifier,
     $chartCanvas,  
     $queryCountContainer    
@@ -1287,7 +1366,7 @@ function createAggregatedHoursChart(
      // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')` ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
-    // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js) TODO: should this not be in the global section
+    // If the chart already exists, destroy it
     if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
 
     // Instanciate Chart Class TODO: --> Instanciate Chart 
@@ -1379,6 +1458,9 @@ function resetPage() {
     filteredData = null;
     list.clear();
     list.add(logAsDataRecords);
+    //list.search(''); // Forces the list to re-render
+    //list.update(); // Recalculates pagination if items were added/removed
+    //list.show(1);  // Show first page
     
     // Update Onscreen - Reconfigure Visible assets
     $('#global_time_scale').val('hour'); 
@@ -1386,7 +1468,8 @@ function resetPage() {
     $('#working_chart_container').css('display', 'none');    
     $('#log_list_container').prop('hidden', false);
     $('#filterStart').text('');
-    $('#filterEnd').text('');    
+    $('#filterEnd').text('');
+    logAsDataRecordsCount ? $('#no-records').prop('hidden', true) : $('#no-records').prop('hidden', false);
 
     // Rebuild Global Chart
     buildGlobalChart();

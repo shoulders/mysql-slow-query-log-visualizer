@@ -87,7 +87,7 @@ th
 
 tfoot
 {
-    display: none;
+    /*display: none;*/
 }
 
 #log_list td.qs
@@ -116,7 +116,7 @@ p.credits
     color: #ffec00;
 }
 
-/* list sort icon */
+/* list - sort icon */
 
 .sort-icon {
       margin-left: 5px;
@@ -138,3 +138,34 @@ th.desc .sort-icon::after {
   color: green;
   content: "▼"; /* Down arrow for descending */
 }
+
+/* list - pagination */
+
+.pagination-container {
+  text-decoration: none;
+  display: flex;            /* Makes list items align horizontally */
+  justify-content: center;  /* Centers the entire pagination */
+  align-items: center;      /* Vertically aligns the entire pagination */
+}
+
+.pagination-container a {
+  text-decoration: none;
+}
+
+.prevNextButton {
+  padding:5px;
+}
+
+ul.pagination {
+  padding-inline-start: unset;
+}
+
+.pagination li {
+  display:inline-block;
+  padding:5px;
+}
+
+.pagination li.active a.page {
+  color: red;
+}
+
