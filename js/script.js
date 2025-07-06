@@ -438,8 +438,7 @@ function createList()
     };    
     list = new List('log_list', options, logAsDataRecords);
 
-
-    // This fires after pagination, search, or filtering.#
+    // This fires after pagination, search, or filtering.
     // Specifically, after List.js finishes updating its internal data, but not necessarily after the browser has finished rendering the DOM.
     list.on('updated', function () {
 
@@ -529,6 +528,11 @@ function prevNextButtons(){
     // Add Click event to the Prev and Next buttons
     $('.pagination-prev').attr('data-i', currentPage - 1).attr('data-page', list.page);
     $('.pagination-next').attr('data-i', currentPage + 1).attr('data-page', list.page);
+
+    // Prevent jumping to the top pf the page when a pagiantion link is clicked
+    $('a.page').click(function(event){
+        event.preventDefault();
+    });
 
 }
 
