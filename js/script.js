@@ -718,8 +718,6 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
         // Clear and Update the table/list with the filtered records
         list.clear();   
         list.add(filteredData);
-        displayListItemsCounts();
-
     }
 
     // Create/update the working chart with the filtered data
@@ -1089,7 +1087,7 @@ function createAggregatedWeekdayHoursChart(
 {
     //TODO: should i keep the data split like this or inject straight into the dataset. + tidy up the 2 comments blow so they make sense to keep them
 
-    // Build an array of time segments (Day) with, a count of records per time segment - first element not used so is removed.
+    // Build an array of time segments (Day) with, a count of records per time segment
     var timeScaleSegments = aggregatedData.hours;
 
     // Build the chart's dataset (records per segment in an array)
@@ -1261,7 +1259,7 @@ function createAggregatedDaysChart(
     $queryCountContainer    
 )
 {
-    // Build an array of time segments (Day) with, a count of records per time segment - first element not used so is removed. (X-AXIS)
+    // Build an array of time segments (Day) with, a count of records per time segment - first element is not used so is removed.
     var timeScaleSegments = aggregatedData.day.slice(1);
 
     // Build the chart's dataset (records per segment in an array)
@@ -1352,7 +1350,7 @@ function createAggregatedHoursChart(
     $queryCountContainer    
 )
 {
-    // Build an array of time segments (Day) with, a count of records per time segment - first element not used so is removed.
+    // Build an array of time segments (Day) with, a count of records per time segment
     var timeScaleSegments = aggregatedData.hours;
 
     // Build the chart's dataset (records per segment in an array)
@@ -1438,7 +1436,7 @@ function createAggregatedHoursChart(
 
 // Convert a day array from (Sun-Sat) to (Mon-Sun)
 function convertSunSatToMonSun(dayArray){
-    dayArray.push(dayArray.shift()); // Take the first array element and put it at the end
+    dayArray.push(dayArray.shift());    // Take the first array element and put it at the end
     return dayArray;
 }
 
