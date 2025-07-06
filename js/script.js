@@ -1098,7 +1098,7 @@ function createAggregatedWeekdayHoursChart(
     chartDatasetData.saturday = convertSunSatToMonSun(aggregatedData.weekdayHours[6]);
     chartDatasetData.sunday = convertSunSatToMonSun(aggregatedData.weekdayHours[0]);     
 
-     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`  ]
+     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
     // If the chart already exists, destroy it
