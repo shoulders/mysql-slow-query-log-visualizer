@@ -622,8 +622,7 @@ function buildGlobalChart()
                 'globalChart',
                 $('#globalChart'),
                 $('#global_time_scale'),                
-                $('#global_chart_queries_count'),
-                'globalGroupedTimescaleData'                
+                $('#global_chart_queries_count')           
             );            
     }
 
@@ -727,13 +726,11 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
         'workingChart',        
         $('#workingChart'),
         $('#working_time_scale'),        
-        $('#working_chart_queries_count'),
-        'workingGroupedTimescaleData'        
+        $('#working_chart_queries_count')
     );
 
     // Update Onscreen - Show the chart
     $('#working_chart_container').prop('hidden', false);
-
 }
 
 // Create a Standard Chart
@@ -744,9 +741,7 @@ function createStandardChart(
     chartIdentifier,
     $chartCanvas,
     $timeScaleSelector,    
-    $queryCountContainer,
-    groupedDataVariableName
-    
+    $queryCountContainer    
 )
 {   
     // Return X-AXIS time segment specifications (Length in milliseconds / Label Format via a function)
@@ -844,8 +839,8 @@ function createStandardChart(
         // Returns the .map() array  ([0],[1],[2],[3],[4],[5],.....)
         .value();
 
-    // TODO: `Build the X-AXIS` ???? - Group records by time segment (timeScaleSegments): copy`data` into new array, add segment index to records, then group records by index (timeScaleRange) (returns object)
-    window[groupedDataVariableName] = 
+    // Group records by time segment: copy`data` into new array, add segment index to records, then group records by index (timeScaleRange) (returns object)
+    let recordsGroupedByTimeSegment = 
 
         // Loop through all `data` records running the function() on each of them. (Returns a new array)
         _(data).map(function(data){
@@ -873,19 +868,16 @@ function createStandardChart(
         // Return the value (object)
         .value();
 
-    // Build an array of time segments with, a count of records per time segment (only segments with records will get a key/pair value, i.e. some indexes will be missing)
-    var countsPerTimeScaleIndex = _(window[groupedDataVariableName]).mapValues('length').value();
-    console.log(window[groupedDataVariableName]);
-    debugger;
+    // Build an array of record counts against time segment (only segments with records will get a key/pair value, i.e. some indexes will be missing)
+    var recordCountsAgainstTimeScaleIndex = _(recordsGroupedByTimeSegment).mapValues('length').value();
     
-    // Build the chart's dataset (records per segment in an array) - Using `timeScaleSegments` create a new array, mapping the count of records against time segment. (this also adds in the missing array indexes)
-    var chartDatasetData = _(timeScaleSegments).map(function(timeScaleRange, timeScaleIndex){ return countsPerTimeScaleIndex[timeScaleIndex] || 0; }).value();
-    
+    // Build an array of record counts against all time segments - Using `timeScaleSegments` as an index, create a new array, mapping the record counts against time segment.
+    var chartDatasetData = _(timeScaleSegments).map(function(timeScaleRange, timeScaleIndex){ return recordCountsAgainstTimeScaleIndex[timeScaleIndex] || 0; }).value();
+
     // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`  ]
     var ctx = $chartCanvas.get(0).getContext("2d");
 
     // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js)
-    //if(window[chartIdentifier]){ window[chartIdentifier].chartComponent.destroy(); }
     if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
     
     // Instanciate Chart Class
