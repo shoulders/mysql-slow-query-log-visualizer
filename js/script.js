@@ -425,7 +425,7 @@ function createList()
         item: listItemTemplate,
         searchDelay: debounceDelay,                     // Delay search/filter by XXXms, after user stops typing
         valueNames: Object.keys(logAsDataRecords[0]),   // list.js now need a list of data fields
-        page: 2,                                       // This per page so pagination is off, Limits visible items
+        page: 50,                                       // This per page so pagination is off, Limits visible items
         pagination: [{                                  // If you do not have the relevant HTML inside the list container then you will get errors
             paginationClass: 'paginationTop',           // The default class is 'pagination',
             innerWindow: 2,
