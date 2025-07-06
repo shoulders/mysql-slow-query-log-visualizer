@@ -116,27 +116,32 @@ p.credits
     color: #ffec00;
 }
 
-/* list - sort icon */
+/* list - Sort Icon */
+
+th.sort p {
+  float: left;
+}
 
 .sort-icon {
       margin-left: 5px;
+      padding-right: 20px;
       font-size: 12px;
-      cursor: not-allowed;
+      width: 8px;
+      height: 8px;
       color: yellow;
       float: right;
-      padding-right: 10px;
     }
-
+.sort-icon::before {
+  content: "▲"; /* starting block */
+  float: right;
+}
 .sort-icon::after {
-  content: "▲▼"; /* starting block */
+  content: "▼"; /* starting block */
+  float: right;
 }
-th.asc .sort-icon::after {
-  color: green;
-  content: "▲"; /* Up arrow for ascending */
-}
+th.asc .sort-icon::before, /* Change coloour for active */
 th.desc .sort-icon::after {
   color: green;
-  content: "▼"; /* Down arrow for descending */
 }
 
 /* list - pagination */
