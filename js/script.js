@@ -997,7 +997,7 @@ function createAggregatedWeekdaysChart(
     // Build an array of time segments (Weekday, Mon-Sun) with, a count of records per time segment
     var timeScaleSegments = convertSunSatToMonSun(aggregatedData.dayOfWeek);
 
-    // Build the chart's dataset (records per segment in an array)  TODO: should i get rid of this variable and put it straight into the datasert
+    // Build the chart's dataset (records per segment in an array)
     var chartDatasetData = timeScaleSegments;
 
      // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`  ]
@@ -1085,8 +1085,6 @@ function createAggregatedWeekdayHoursChart(
     $queryCountContainer    
 )
 {
-    //TODO: should i keep the data split like this or inject straight into the dataset. + tidy up the 2 comments blow so they make sense to keep them
-
     // Build an array of time segments (Day) with, a count of records per time segment
     var timeScaleSegments = aggregatedData.hours;
 
