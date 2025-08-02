@@ -18,24 +18,24 @@
             <em>If you need to process very large files (&gt;500MB), you will have to call Chrome with <strong>--js-flags="--max-old-space-size=5000"</strong> parameter to increase memory allocatable by Chrome to 5GB</em>
         </div>
 
-        <div id="drop_zone">Drop log file here</div>
+        <div id="dropZone">Drop log file here</div>
 
-        <div id="log_information" hidden>
+        <div id="logInformation" hidden>
             <h2>Log Information</h2>
             <ul>
-                <li><span class="log_information_title">Server: </span><span id="server_details">Not available</span></li>
-                <li><span class="log_information_title">File: </span><span id="log_information_file">Not available</span></li>
-                <li><span class="log_information_title">Records: </span><span id="log_information_numberOfRecords">Not available</span></li>
-                <li><span class="log_information_title">Start Date: </span><span id="log_information_startDate">Not available</span></li>
-                <li><span class="log_information_title">End Date: </span><span id="log_information_endDate">Not available</span></li>
+                <li><span class="log-information-title">Server: </span><span id="logInformationServerDetails">Not available</span></li>
+                <li><span class="log-information-title">File: </span><span id="logInformationFile">Not available</span></li>
+                <li><span class="log-information-title">Records: </span><span id="logInformationRecordCount">Not available</span></li>
+                <li><span class="log-information-title">Start Date: </span><span id="logInformationStartDate">Not available</span></li>
+                <li><span class="log-information-title">End Date: </span><span id="logInformationEndDate">Not available</span></li>
             </ul>
         </div>
 
         <!-- Global Chart -->
-        <div id="global_chart_container" class="chart_container" style="max-height: 400px; margin-bottom: 40px;" hidden>
+        <div id="globalChartContainer" class="chart-container" style="max-height: 400px; margin-bottom: 40px;" hidden>
             <div><button id="resetFilter" onclick="resetPage();">Reset Filter</button></div>
             <h2>GLOBAL CHART</h2>
-            <div>Group By : <select id="global_time_scale">
+            <div>Group By : <select id="globalChartTimeScale">
                     <option value="month">Month</option>
                     <option value="week">Week</option>
                     <option value="day">Day</option>
@@ -47,17 +47,17 @@
                     <option value="aggregatedHours">Aggregated Hours</option>
                 </select>
             </div>
-            <p id="global_chart_queries_count"></p>
+            <p id="globalChartRecordCount"></p>
             <canvas id="globalChart" class="chart" width="1280px" height="600"></canvas>
         </div>
 
         <br /><br />
 
         <!-- Working Chart -->
-        <div id="working_chart_container" class="chart_container" style="max-height: 400px; margin-bottom: 40px;" hidden>
+        <div id="workingChartContainer" class="chart-container" style="max-height: 400px; margin-bottom: 40px;" hidden>
             <h2>WORKING CHART</h2>
             <div>
-                Group By : <select id="working_time_scale">
+                Group By : <select id="workingChartTimeScale">
                     <option value="month">Month</option>
                     <option value="week">Week</option>
                     <option value="day">Day</option>
@@ -65,25 +65,25 @@
                     <option value="minute">Minute</option>
                 </select>
             </div>
-            <p id="working_chart_queries_count"></p>
+            <p id="workingChartRecordCount"></p>
             <canvas id="workingChart" class="chart" width="1280px" height="600"></canvas>
             <div id="appliedFilter" style="margin-top: 100px; margin-bottom: 25px;">Chart filtering : start = <span id="filterStart"></span>, end = <span id="filterEnd"></span></div>
         </div>
 
         <!-- Table -->
-        <div id="log_list_container" hidden>
-            <table id="log_list">
+        <div id="logListContainer" hidden>
+            <table id="logList">
                 <thead class="header">
                     <tr id="search">
                         <th colspan="10">
-                            <span class="list_search">
-                                Showing <span id="list_items_count_showing"></span> of <span id="list_items_count_showingOf"></span> records
-                                (Filtered: <span id="list_items_count_filtered"></span> / Visible: <span id="list_items_count_visible"></span> / Total: <span id="list_items_count_total"></span>)
-                                <label for="log_list_search">Filter:</label>
-                                <input id="log_list_search" class="search" />
+                            <span class="list-search">
+                                Showing <span id="listItemsCountShowing"></span> of <span id="listItemsCountShowingOf"></span> records
+                                (Filtered: <span id="listItemsCountFiltered"></span> / Visible: <span id="listItemsCountVisible"></span> / Total: <span id="listItemsCountTotal"></span>)
+                                <label for="logListSearch">Filter:</label>
+                                <input id="logListSearch" class="search" />
                             </span>
                             <div class="pagination-container">
-                                <a class="prevNextButton pagination-prev page" href="#" hidden>&lt;</a><ul class="pagination paginationTop"></ul><a class="prevNextButton pagination-next page" href="#" hidden>&gt;</a>
+                                <a class="prev-next-button pagination-prev page" href="#" hidden>&lt;</a><ul class="pagination pagination-top"></ul><a class="prev-next-button pagination-next page" href="#" hidden>&gt;</a>
                             </div>
                         </th>
                     </tr>
@@ -101,7 +101,7 @@
                     </tr>
                 </thead>
                 <tbody class="list">
-                    <tr id="log_list_item">
+                    <tr id="logListItem">
                         <th scope="row" class="date"></th>
                         <td class="query_duration"></td>
                         <td class="lock_duration"></td>
@@ -117,9 +117,9 @@
                 <tfoot>
                     <th colspan="10">
                         <div class="pagination-container">
-                            <a class="prevNextButton pagination-prev page" href="#" hidden>&lt;</a><ul class="pagination paginationBottom"></ul><a class="prevNextButton pagination-next page" href="#" hidden>&gt;</a>
+                            <a class="prev-next-button pagination-prev page" href="#" hidden>&lt;</a><ul class="pagination pagination-top"></ul><a class="prev-next-button pagination-next page" href="#" hidden>&gt;</a>
                         </div>
-                        <div id="no-records" hidden>No Records</div>
+                        <div id="noRecords" hidden>No Records</div>
                     </th>
                 </tfoot>
             </table>

@@ -104,7 +104,7 @@ $( document ).ready(function() {
 
 // Setup the Drag and Drop listeners. (for when somene drops a file into the drop_xzone)
 function start() {    
-    var dropZone = document.getElementById('drop_zone');
+    var dropZone = document.getElementById('dropZone');
     dropZone.addEventListener('dragover', handleDragOver, false);  // maybe this can be use to convert the background or hide a select file buttong
     dropZone.addEventListener('drop', handleFileSelect, false);  // this is triggered when you drag and drop a file
 }
@@ -126,7 +126,7 @@ function handleFileSelect(evt) {
     var f = files[0];
 
     // Update Onscreen - Show uploaded file information
-    $('#log_information_file').html(f.name + ' (' + f.size + ' bytes)');
+    $('#logInformationFile').html(f.name + ' (' + f.size + ' bytes)');
 
     // Variable to hold the file object
     var reader = new FileReader();
@@ -146,11 +146,11 @@ function handleFileSelect(evt) {
 
             // Update Onscreen - Show processing is complete               
             $('#information').prop('hidden', true);   
-            $('#log_information').prop('hidden', false);
-            $('#log_information_logAsDataRecordsCount').html(logAsDataRecordsCount);       
-            $('#log_information_startDate').html(logAsDataRecords[0].date);  
-            $('#log_information_endDate').html(logAsDataRecords[logAsDataLastDateIndex].date);
-            logAsDataRecordsCount ? $('#no-records').prop('hidden', true) : $('#no-records').prop('hidden', false);
+            $('#logInformation').prop('hidden', false);
+            $('#logInformationRecordCount').html(logAsDataRecordsCount);
+            $('#logInformationStartDate').html(logAsDataRecords[0].date);  
+            $('#logInformationEndDate').html(logAsDataRecords[logAsDataLastDateIndex].date);
+            logAsDataRecordsCount ? $('#noRecords').prop('hidden', true) : $('#noRecords').prop('hidden', false);
 
             // Change screen from file dropbox, create and display the table         
             try {
@@ -195,7 +195,7 @@ function processLog(logFileTextBlob) {
 
         // Update Onscreen - Server information
         var serverDetails = logAsTimeGroups[0].match(/(.*), Version: (.*) \((.*)\)/);
-        $('#server_details').html(serverDetails[3] + ' (' + serverDetails[2] + ')') 
+        $('#logInformationServerDetails').html(serverDetails[3] + ' (' + serverDetails[2] + ')') 
 
         // Remove this record
         logAsTimeGroups.shift();
@@ -417,8 +417,8 @@ function createList()
     let debounceDelay = 1000;
 
     // Get the item template from the DOM, and then correct the placeholder - This avoids an unwanted empty record.
-    let listItemTemplate = '<tr>' + $('#log_list_item').html() + '</tr>';
-    $('#log_list_item').remove();
+    let listItemTemplate = '<tr>' + $('#logListItem').html() + '</tr>';
+    $('#logListItem').remove();
 
     // Enable the list
     var options = {
@@ -427,16 +427,16 @@ function createList()
         valueNames: Object.keys(logAsDataRecords[0]),   // list.js now need a list of data fields
         page: 50,                                       // This per page so pagination is off, Limits visible items
         pagination: [{                                  // If you do not have the relevant HTML inside the list container then you will get errors
-            paginationClass: 'paginationTop',           // The default class is 'pagination',
+            paginationClass: 'pagination-top',           // The default class is 'pagination',
             innerWindow: 2,
             outerWindow: 2,
             }, {
-            paginationClass: 'paginationBottom',
+            paginationClass: 'pagination-bottom',
             innerWindow: 2,
             outerWindow: 2,
         }]
     };    
-    list = new List('log_list', options, logAsDataRecords);
+    list = new List('logList', options, logAsDataRecords);
 
     // This fires after pagination, search, or filtering.
     // Specifically, after List.js finishes updating its internal data, but not necessarily after the browser has finished rendering the DOM.
@@ -468,23 +468,23 @@ function createList()
     });
 
     // When input in the filter box, update the item counts (has a delay to prevent over searching) (not currently used/needed keep for reference in using debounce)
-    //$('#log_list_search').keyup(debounce(displayListItemsCounts, debounceDelay));
+    //$('#logListSearch').keyup(debounce(displayListItemsCounts, debounceDelay));
 
     // Change display options
-    $('#drop_zone').prop('hidden', true);           // hide the file drag and drop box
-    $('#log_list_container').prop('hidden', false); // unhide the table section
-    $('#log_list').css('display','table');          // unhide the data table
+    $('#dropZone').prop('hidden', true);           // hide the file drag and drop box
+    $('#logListContainer').prop('hidden', false); // unhide the table section
+    $('#logList').css('display','table');          // unhide the data table
   
 }
 
 // Update Onscreen - Number of records
 function displayListItemsCounts(){    
-    list.matchingItems.length ? $('#no-records').prop('hidden', true) : $('#no-records').prop('hidden', false);
-    $('#list_items_count_filtered').html(list.matchingItems.length);
-    $('#list_items_count_visible').html(list.visibleItems.length);
-    $('#list_items_count_total').html(list.items.length);
-    $('#list_items_count_showing').html(list.visibleItems.length);
-    $('#list_items_count_showingOf').html(list.matchingItems.length);
+    list.matchingItems.length ? $('#noRecords').prop('hidden', true) : $('#noRecords').prop('hidden', false);
+    $('#listItemsCountFiltered').html(list.matchingItems.length);
+    $('#listItemsCountVisible').html(list.visibleItems.length);
+    $('#listItemsCountTotal').html(list.items.length);
+    $('#listItemsCountShowing').html(list.visibleItems.length);
+    $('#listItemsCountShowingOf').html(list.matchingItems.length);
 }
 
 // Prev/Next Button Handling
@@ -580,18 +580,18 @@ function updateListAfterFilterBoxChange() {
 function buildGlobalChart()
 {
     // When `Group By :` dropdown is changed, reload the graph
-    $('#global_time_scale').on('change', function(){
+    $('#globalChartTimeScale').on('change', function(){
         buildGlobalChart();
     });
     
     // Create Chart the correct for the 'Group By' (Drop Down) data type selection
-    switch ($('#global_time_scale').val()) {
+    switch ($('#globalChartTimeScale').val()) {
         case 'aggregatedWeekdays':
             createAggregatedWeekdaysChart(
                 logAsDataRecords,
                 'globalChart',
                 $('#globalChart'),                            
-                $('#global_chart_queries_count')               
+                $('#globalChartRecordCount')               
             );
             break;
         case 'aggregatedWeekdayHours':
@@ -599,7 +599,7 @@ function buildGlobalChart()
                 logAsDataRecords,
                 'globalChart',
                 $('#globalChart'),                            
-                $('#global_chart_queries_count')               
+                $('#globalChartRecordCount')               
             );
             break;
         case 'aggregatedDays':
@@ -607,7 +607,7 @@ function buildGlobalChart()
                 logAsDataRecords,
                 'globalChart',
                 $('#globalChart'),                            
-                $('#global_chart_queries_count')               
+                $('#globalChartRecordCount')               
             );
             break;
         case 'aggregatedHours':
@@ -615,7 +615,7 @@ function buildGlobalChart()
                 logAsDataRecords,
                 'globalChart',
                 $('#globalChart'),                            
-                $('#global_chart_queries_count')               
+                $('#globalChartRecordCount')               
             );
             break;
         default:      
@@ -625,8 +625,8 @@ function buildGlobalChart()
                 logAsDataLastDateObj,
                 'globalChart',
                 $('#globalChart'),
-                $('#global_time_scale'),                
-                $('#global_chart_queries_count')           
+                $('#globalChartTimeScale'),                
+                $('#globalChartRecordCount')           
             );            
     }
 
@@ -636,7 +636,7 @@ function buildGlobalChart()
 function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartIdentifier = null){
 
     // When `Group By :` dropdown is changed, reload the graph
-    $('#working_time_scale').on('change', function(){
+    $('#workingChartTimeScale').on('change', function(){
         buildWorkingChart();
     });
 
@@ -727,12 +727,12 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
         wcFilteringCriteria.end ? wcFilteringCriteria.end.endingDate : lastDate,
         'workingChart',        
         $('#workingChart'),
-        $('#working_time_scale'),        
-        $('#working_chart_queries_count')
+        $('#workingChartTimeScale'),        
+        $('#workingChartRecordCount')
     );
 
     // Update Onscreen - Show the chart
-    $('#working_chart_container').prop('hidden', false);
+    $('#workingChartContainer').prop('hidden', false);
 }
 
 // Create a Standard Chart
@@ -981,8 +981,8 @@ function createStandardChart(
     $chartCanvas.on('click', function(evt) { buildWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
 
     // Display/Hide sections as needed    
-    $('#global_chart_container').prop('hidden', false);    
-    $('#log_list_container').prop('hidden', false);
+    $('#globalChartContainer').prop('hidden', false);    
+    $('#logListContainer').prop('hidden', false);
 
 }
 
@@ -1071,9 +1071,9 @@ function createAggregatedWeekdaysChart(
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
     // Display/Hide sections as needed
-    $('#global_chart_container').prop('hidden', false);
-    $('#working_chart_container').prop('hidden', true);
-    $('#log_list_container').prop('hidden', true);
+    $('#globalChartContainer').prop('hidden', false);
+    $('#workingChartContainer').prop('hidden', true);
+    $('#logListContainer').prop('hidden', true);
 
 };
 
@@ -1243,9 +1243,9 @@ function createAggregatedWeekdayHoursChart(
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
     // Display/Hide sections as needed
-    $('#global_chart_container').prop('hidden', false);
-    $('#working_chart_container').prop('hidden', true);
-    $('#log_list_container').prop('hidden', true);
+    $('#globalChartContainer').prop('hidden', false);
+    $('#workingChartContainer').prop('hidden', true);
+    $('#logListContainer').prop('hidden', true);
 
 };
 
@@ -1334,9 +1334,9 @@ function createAggregatedDaysChart(
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
     // Display/Hide sections as needed
-    $('#global_chart_container').prop('hidden', false);
-    $('#working_chart_container').prop('hidden', true);
-    $('#log_list_container').prop('hidden', true);
+    $('#globalChartContainer').prop('hidden', false);
+    $('#workingChartContainer').prop('hidden', true);
+    $('#logListContainer').prop('hidden', true);
 
 };
 
@@ -1425,9 +1425,9 @@ function createAggregatedHoursChart(
     $queryCountContainer.html("Displaying " + data.length + " queries");
 
     // Display/Hide sections as needed
-    $('#global_chart_container').prop('hidden', false);
-    $('#working_chart_container').prop('hidden', true);
-    $('#log_list_container').prop('hidden', true);
+    $('#globalChartContainer').prop('hidden', false);
+    $('#workingChartContainer').prop('hidden', true);
+    $('#logListContainer').prop('hidden', true);
 
 };
 
@@ -1454,13 +1454,13 @@ function resetPage() {
     //list.show(1);  // Show first page
     
     // Update Onscreen - Reconfigure Visible assets
-    $('#global_time_scale').val('hour'); 
-    $('#working_time_scale').val('hour');
-    $('#working_chart_container').css('display', 'none');    
-    $('#log_list_container').prop('hidden', false);
+    $('#globalChartTimeScale').val('hour'); 
+    $('#workingChartTimeScale').val('hour');
+    $('#workingChartContainer').css('display', 'none');    
+    $('#logListContainer').prop('hidden', false);
     $('#filterStart').text('');
     $('#filterEnd').text('');
-    logAsDataRecordsCount ? $('#no-records').prop('hidden', true) : $('#no-records').prop('hidden', false);
+    logAsDataRecordsCount ? $('#noRecords').prop('hidden', true) : $('#noRecords').prop('hidden', false);
 
     // Rebuild Global Chart
     buildGlobalChart();

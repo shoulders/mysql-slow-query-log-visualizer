@@ -26,13 +26,14 @@ li
     list-style-type: none;
 }
 
-#drop_zone
+#dropZone
 {
     border: 1px dashed #999;
     text-align: center;
     padding: 80px 0;
 }
 
+/*
 #drop_result
 {
     display: block;
@@ -44,8 +45,9 @@ li
     color: #ffec00;
     margin-bottom: 20px;
 }
+    */
 
-.chart_container
+.chart-container
 {
     margin: auto;
 }
@@ -59,12 +61,14 @@ li
     text-align: right;
 }
 
+/*
 #search_count
 {
     color: #ffec00;
     font-weight: normal;
     padding-right: 10px;
 }
+    */
 
 table
 {
@@ -90,7 +94,7 @@ tfoot
     /*display: none;*/
 }
 
-#log_list td.qs
+#logList td.qs
 {
     overflow: hidden;
 }
@@ -111,7 +115,12 @@ p.credits
 
 /** Mine **/
 
-.log_information_title
+.list-search
+{
+  /* TODO: do i need this - check html - naybw a div  */
+}
+
+.log-information-title
 {
     color: #ffec00;
 }
@@ -144,7 +153,7 @@ th.desc .sort-icon::after {
   color: green;
 }
 
-/* list - pagination */
+/* list - Pagination */
 
 .pagination-container {
   text-decoration: none;
@@ -157,7 +166,7 @@ th.desc .sort-icon::after {
   text-decoration: none;
 }
 
-.prevNextButton {
+.prev-next-button {
   padding:5px;
 }
 
