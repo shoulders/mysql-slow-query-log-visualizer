@@ -75,8 +75,7 @@ table
     table-layout: fixed;
     width: 100%;
     padding: 20px;
-    border: 1px solid #ccc;
-    display: none;
+    border: 1px solid #ccc
 }
 
 thead th
@@ -166,7 +165,7 @@ th.desc .sort-icon::after {
   text-decoration: none;
 }
 
-.prev-next-button {
+.prevnext-button {
   padding:5px;
 }
 

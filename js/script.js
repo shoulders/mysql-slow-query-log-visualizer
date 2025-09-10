@@ -75,7 +75,7 @@ var aggregatedData = {
             [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // Thursday
             [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // Friday
             [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // Saturday
-        ],    
+        ],
     'day': [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],  // length 32 - to keep indexing correct, will be compensated for later
     'hours': [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 };
@@ -416,18 +416,18 @@ function createList()
     // Delay used in debounced functions
     let debounceDelay = 1000;
 
-    // Get the item template from the DOM, and then correct the placeholder - This avoids an unwanted empty record.
+    // Get the item template from the DOM, and then remove it - This avoids an unwanted empty record.
     let listItemTemplate = '<tr>' + $('#logListItem').html() + '</tr>';
     $('#logListItem').remove();
 
     // Enable the list
-    var options = {
+    let options = {
         item: listItemTemplate,
         searchDelay: debounceDelay,                     // Delay search/filter by XXXms, after user stops typing
         valueNames: Object.keys(logAsDataRecords[0]),   // list.js now need a list of data fields
         page: 50,                                       // This per page so pagination is off, Limits visible items
         pagination: [{                                  // If you do not have the relevant HTML inside the list container then you will get errors
-            paginationClass: 'pagination-top',           // The default class is 'pagination',
+            paginationClass: 'pagination-top',          // The default class is 'pagination',
             innerWindow: 2,
             outerWindow: 2,
             }, {
@@ -435,7 +435,8 @@ function createList()
             innerWindow: 2,
             outerWindow: 2,
         }]
-    };    
+    };
+
     list = new List('logList', options, logAsDataRecords);
 
     // This fires after pagination, search, or filtering.
@@ -716,7 +717,7 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
 
 
         // Clear and Update the table/list with the filtered records
-        list.clear();   
+        list.clear();
         list.add(filteredData);
     }
 

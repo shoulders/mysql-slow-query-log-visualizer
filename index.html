@@ -4,11 +4,11 @@
         <meta charset="utf-8">
         <title>MySQL Slow Query Log Visualizer</title>
         <link rel="stylesheet" href="css/style.css">
-        <script src="bower_components/jquery-3.7.1.min.js"></script>
-        <script src="bower_components/chartjs/chart.umd.js"></script>
-        <script src="bower_components/lodash.js"></script>
-        <script src="bower_components/clipboard/clipboard.min.js"></script>
-        <script src="js/list.js"></script>
+        <script src="js/jquery-3.7.1.min.js"></script>
+        <script src="js/chartjs/chart.umd.js"></script>
+        <script src="js/lodash.js"></script>
+        <script src="js/clipboard.min.js"></script>
+        <script src="js/list.min.js"></script>
         <script src="js/script.js"></script>
     </head>
     <body>
@@ -83,7 +83,7 @@
                                 <input id="logListSearch" class="search" />
                             </span>
                             <div class="pagination-container">
-                                <a class="prev-next-button pagination-prev page" href="#" hidden>&lt;</a><ul class="pagination pagination-top"></ul><a class="prev-next-button pagination-next page" href="#" hidden>&gt;</a>
+                                <a class="prevnext-button pagination-prev page" href="#" hidden>&lt;</a><ul class="pagination pagination-top"></ul><a class="prevnext-button pagination-next page" href="#" hidden>&gt;</a>
                             </div>
                         </th>
                     </tr>
@@ -117,7 +117,7 @@
                 <tfoot>
                     <th colspan="10">
                         <div class="pagination-container">
-                            <a class="prev-next-button pagination-prev page" href="#" hidden>&lt;</a><ul class="pagination pagination-top"></ul><a class="prev-next-button pagination-next page" href="#" hidden>&gt;</a>
+                            <a class="prevnext-button pagination-prev page" href="#" hidden>&lt;</a><ul class="pagination pagination-bottom"></ul><a class="prevnext-button pagination-next page" href="#" hidden>&gt;</a>
                         </div>
                         <div id="noRecords" hidden>No Records</div>
                     </th>
