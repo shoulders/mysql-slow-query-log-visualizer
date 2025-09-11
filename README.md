@@ -1,6 +1,10 @@
 # mysql-slow-query-log-visualizer
 
-I will be putting this online shortly so no need to roll your own
+This tool will help you find SQL queries that are taking to long to complete which are reducing your server's performance and in some cases can be a cause of the server's SQL service to crash because these queries are holding on too much RAM.
+
+## Use Online
+
+Use this app online, no installation needed: https://shoulders.github.io/mysql-slow-query-log-visualizer/
 
 ## Privacy Information
 
