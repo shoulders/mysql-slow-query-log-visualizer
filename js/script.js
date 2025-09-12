@@ -902,10 +902,14 @@ function createStandardChart(
             }]
         },
         options: {
+            plugins: {
+                legend: {
+                    display: false                      // Hide the dataset label
+                }
+            },
             pointHitDetectionRadius: 1,
             scales: {
-
-                // X- AXIS configuration
+                // X-AXIS configuration
                 x: {
                     title: {
                         display: true,
@@ -1026,14 +1030,18 @@ function createAggregatedWeekdaysChart(
             }]
         },
         options: {
+            plugins: {
+                legend: {
+                    display: false                      // Hide the dataset label
+                }
+            },
             pointHitDetectionRadius: 1,
             scales: {
-
-                // X- AXIS configuration
+                // X-AXIS configuration
                 x: {
                     title: {
                         display: true,
-                        text: 'Day of Request'         // Label for the x-axis
+                        text: 'Day of Request'          // Label for the x-axis
                     },
                     ticks: {
                         //stepSize: 1,                  // Customize tick intervals
@@ -1289,14 +1297,18 @@ function createAggregatedDaysChart(
             }]
         },
         options: {
+            plugins: {
+                legend: {
+                    display: false                      // Hide the dataset label
+                }
+            },
             pointHitDetectionRadius: 1,
             scales: {
-
                 // X-AXIS configuration
                 x: {
                     title: {
                         display: true,
-                        text: 'Day of Request'         // Label for the x-axis
+                        text: 'Day of Request'          // Label for the x-axis
                     },
                     ticks: {
                         //stepSize: 1,                  // Customize tick intervals
@@ -1380,9 +1392,13 @@ function createAggregatedHoursChart(
             }]
         },
         options: {
+            plugins: {
+                legend: {
+                    display: false                      // Hide the dataset label
+                }
+            },
             pointHitDetectionRadius: 1,
             scales: {
-
                 // X-AXIS configuration
                 x: {
                     title: {
