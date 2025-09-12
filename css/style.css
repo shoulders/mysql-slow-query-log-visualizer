@@ -50,10 +50,15 @@ li
 .chart-container
 {
     margin: auto;
+    max-height: 400px;
+    margin-bottom: 40px;
 }
 
 .chart {
     text-align: left;
+    width: 1280px;
+    height: 600px;
+
 }
 
 #search th
@@ -147,7 +152,7 @@ th.sort p {
   content: "▼"; /* starting block */
   float: right;
 }
-th.asc .sort-icon::before, /* Change coloour for active */
+th.asc .sort-icon::before, /* Change colour for active */
 th.desc .sort-icon::after {
   color: green;
 }
