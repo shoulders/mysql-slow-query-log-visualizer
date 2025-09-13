@@ -84,8 +84,8 @@ var aggregatedData = {
 /*  Just incase I need thee late
 function createBlankArray(numberOfElements) {
     let blankArray = [];
-    for (let i = 0; i < numberOfElements; i++) {    
-        blankArray[i] = 0;        
+    for (let i = 0; i < numberOfElements; i++) {
+        blankArray[i] = 0;
     }
     return blankArray;
 }
@@ -103,7 +103,7 @@ $( document ).ready(function() {
 });
 
 // Setup the Drag and Drop listeners. (for when somene drops a file into the drop_xzone)
-function start() {    
+function start() {
     var dropZone = document.getElementById('dropZone');
     dropZone.addEventListener('dragover', handleDragOver, false);  // maybe this can be use to convert the background or hide a select file buttong
     dropZone.addEventListener('drop', handleFileSelect, false);  // this is triggered when you drag and drop a file
@@ -122,7 +122,7 @@ function handleFileSelect(evt) {
     evt.preventDefault();
 
     // files is a FileList of File objects. List some properties.
-    var files = evt.dataTransfer.files;    
+    var files = evt.dataTransfer.files;
     var f = files[0];
 
     // Update Onscreen - Show uploaded file information
@@ -131,7 +131,7 @@ function handleFileSelect(evt) {
     // Variable to hold the file object
     var reader = new FileReader();
 
-    // Closure to capture the file.    
+    // Closure to capture the file.
     reader.onloadend = function(e) {
 
         // When the file has been uploaded
@@ -139,20 +139,20 @@ function handleFileSelect(evt) {
 
             // Process the log and return number of records
             try {
-                processLog(e.target.result);                
+                processLog(e.target.result);
             } catch (error) {
                 console.log(error);
             }
 
-            // Update Onscreen - Show processing is complete               
-            $('#information').prop('hidden', true);   
+            // Update Onscreen - Show processing is complete
+            $('#information').prop('hidden', true);
             $('#logInformation').prop('hidden', false);
             $('#logInformationRecordCount').html(logAsDataRecordsCount);
-            $('#logInformationStartDate').html(logAsDataRecords[0].date);  
+            $('#logInformationStartDate').html(logAsDataRecords[0].date);
             $('#logInformationEndDate').html(logAsDataRecords[logAsDataLastDateIndex].date);
             logAsDataRecordsCount ? $('#noRecords').prop('hidden', true) : $('#noRecords').prop('hidden', false);
 
-            // Change screen from file dropbox, create and display the table         
+            // Change screen from file dropbox, create and display the table
             try {
                 createList();
             } catch (error) {
@@ -184,8 +184,8 @@ function handleFileSelect(evt) {
 // Process the uploaded slow query log, parseout the records
 function processLog(logFileTextBlob) {
     var log_entry;
-    var log_entry_lines;    
-    var query_request_stats;     
+    var log_entry_lines;
+    var query_request_stats;
 
     // Split by timegroup to allow for correct local time string
     var logAsTimeGroups = logFileTextBlob.split(/(?=# Time: )/);
@@ -195,7 +195,7 @@ function processLog(logFileTextBlob) {
 
         // Update Onscreen - Server information
         var serverDetails = logAsTimeGroups[0].match(/(.*), Version: (.*) \((.*)\)/);
-        $('#logInformationServerDetails').html(serverDetails[3] + ' (' + serverDetails[2] + ')') 
+        $('#logInformationServerDetails').html(serverDetails[3] + ' (' + serverDetails[2] + ')')
 
         // Remove this record
         logAsTimeGroups.shift();
@@ -214,20 +214,20 @@ function processLog(logFileTextBlob) {
         logAsTimeGroups[t] = logAsTimeGroups[t].replace(/# Time: .*\n/, '');
 
         // Generate an ISO 8601 format date from `# Time:` statement (YYYY-MM-DDTHH:mm:ss.sssZ)
-        var date_iso = local_time.match(/([0-9]{2})([0-9]{2})([0-9]{2})[ ]{1,2}([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);        
+        var date_iso = local_time.match(/([0-9]{2})([0-9]{2})([0-9]{2})[ ]{1,2}([0-9]{1,2}):([0-9]{2}):([0-9]{2})/);
         date_iso = '20' + date_iso[1] + '-' + date_iso[2] + '-' + date_iso[3] + 'T' + _.padStart(date_iso[4], 2, '0') + ':' + date_iso[5] + ':' + date_iso[6] + '.000Z';
 
         // Create Date Object (UTC time)
         // JavaScript's Date object does not support timezones.
-        // It always converts the input (date or timestamp) to UTC (Zulu) time internally.               
+        // It always converts the input (date or timestamp) to UTC (Zulu) time internally.
         // How it interprets the input depends on whether a time zone is included in the string.
         // Adding Z (Zulu/UTC timezone) on the end of the string, date() interprets the dates as UTC time, dropping the Z it interprets dates as local time
         // When the time zone offset is absent, date-only forms are interpreted as a UTC time and date-time forms are interpreted as a local time.
         // d = new Date(logAsDataRecords[i].timestamp * 1000); // 1000 milliseconds = 1 second
         var d = new Date(date_iso);
 
-        // Extract parts of the date     
-        var year = d.getUTCFullYear();        
+        // Extract parts of the date
+        var year = d.getUTCFullYear();
         var month = (d.getUTCMonth() + 1);  // 0 - 11
         var day = d.getUTCDate();           // 1 - 31
         var hours = d.getUTCHours();        // 0 - 23
@@ -236,8 +236,8 @@ function processLog(logFileTextBlob) {
         var dayOfWeek = d.getUTCDay();      // 0 - 6  (Sunday --> Saturday)
 
         // String used for display (YYYY-MM-DDTHH:mm:ss)
-        var dateString = d.toISOString().replace('T', ' ').replace(/\..*$/, '');        
-   
+        var dateString = d.toISOString().replace('T', ' ').replace(/\..*$/, '');
+
         // Split the time text groups into records into an array by splitting at "# User@Host: "
         var logAsTextRecords = logAsTimeGroups[t].split(/(?=# User@Host: )/);
 
@@ -247,16 +247,16 @@ function processLog(logFileTextBlob) {
             // Intialise the variable
             logAsDataRecords[i] = [];
 
-            // Load text record for processing        
+            // Load text record for processing
             log_entry = logAsTextRecords[r];
 
             // Split the record into separate lines for easier processing
             log_entry_lines = log_entry.split("\n");
-            
+
             // Add Local Time
             logAsDataRecords[i].time = local_time;
 
-            // Add User, DB, Host            
+            // Add User, DB, Host
             var thecredentials = log_entry_lines[0].match(/# User@Host: (.*)\[(.*)\] @ (.*) \[\]/);
             logAsDataRecords[i].user = thecredentials[1];
             logAsDataRecords[i].db_name = thecredentials[2];
@@ -282,7 +282,7 @@ function processLog(logFileTextBlob) {
 
             // `use` Statement - Not all queries have this line, remove if found.
             if (log_entry_lines[4].substr(0,3) === "use") {
-                log_entry_lines.shift(); 
+                log_entry_lines.shift();
             }
 
             // Timestamp (converted to Javascript syntax with milliseconds)
@@ -301,11 +301,11 @@ function processLog(logFileTextBlob) {
             // Transform some values into buttons
             var hideShowButtons = '<button class="showBtn" onclick="showQuery(this);">Show</button> <button class="hideBtn" onclick="hideQuery(this);" style="display:none">Hide</button> <button class="copyToClipboardBtn">Copy</button>';
             logAsDataRecords[i].query_string = hideShowButtons + '<span style="display:none"><br/>' + logAsDataRecords[i].query_string + '</span>';
-            if(logAsDataRecords[i].query_with_stripped_where_clauses) {                       
+            if(logAsDataRecords[i].query_with_stripped_where_clauses) {
                 logAsDataRecords[i].query_with_stripped_where_clauses = hideShowButtons + '<span style="display:none"><br/>' + logAsDataRecords[i].query_with_stripped_where_clauses+'</span>';
-            }   
+            }
 
-            // Add Date information            
+            // Add Date information
             logAsDataRecords[i].dateObj = d;
             logAsDataRecords[i].date = dateString;
             logAsDataRecords[i].dayName = dayNames[dayOfWeek];  // This will allow searching by day name in the table
@@ -313,18 +313,18 @@ function processLog(logFileTextBlob) {
 
             //// Record Aggregation Section ////
 
-            
-            // Weekdays Aggregated record count (Sunday - Saturday)            
-            aggregatedData.dayOfWeek[dayOfWeek]++; 
 
-            // Weekdays (by hour) Aggregated record count (Sunday - Saturday)           
+            // Weekdays Aggregated record count (Sunday - Saturday)
+            aggregatedData.dayOfWeek[dayOfWeek]++;
+
+            // Weekdays (by hour) Aggregated record count (Sunday - Saturday)
             aggregatedData.weekdayHours[dayOfWeek][hours]++;
-            
+
             // Days Aggregated record count (1 - 31) (NB: thre is a zero index in the array)
-            aggregatedData.day[day]++; 
+            aggregatedData.day[day]++;
 
             // count of all records in this hour
-            aggregatedData.hours[hours]++;              
+            aggregatedData.hours[hours]++;
 
             // Advance Records reference by one
             i++;
@@ -336,8 +336,8 @@ function processLog(logFileTextBlob) {
     // Empty the uneeded variables to reduce RAM usage - also could use = null; can never unset a varible in JS
     logFileTextBlob = undefined;
     logAsTimeGroups = undefined;
-    logAsTextRecords = undefined;    
-
+    logAsTextRecords = undefined;
+    
 
     //// The Log has been looped and all records extracted ////
 
@@ -356,8 +356,8 @@ function processLog(logFileTextBlob) {
     /* Get date range of the records (checks every record = slow)
     logAsDataFirstDateObj = _.minBy(logAsDataRecords, 'dateObj').dateObj;
     logAsDataLastDateObj = _.maxBy(logAsDataRecords, 'dateObj').dateObj;*/
-    
-    // Finished building log, 
+
+    // Finished building log,
     return;
 
 }
@@ -401,8 +401,8 @@ function calculateQueryPatternOccurencesTextOn(dataItems, target) {
     // This takes a record's query and matches it against a group from above, then gets that group's count, then adds that number into the record's data.
     // This is one for each record.
     _.each(dataItems, function(data) {
-        if(target === 'global' || target === 'both') {data.query_pattern_global_occurences = dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length;}        
-        if(target === 'filtered' || target === 'both') {data.query_pattern_filtered_occurences = dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length;}        
+        if(target === 'global' || target === 'both') {data.query_pattern_global_occurences = dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length;}
+        if(target === 'filtered' || target === 'both') {data.query_pattern_filtered_occurences = dataGroupedByStrippedQueries[data.query_with_stripped_where_clauses].length;}
     });
 }
 
@@ -475,11 +475,11 @@ function createList()
     $('#dropZone').prop('hidden', true);           // hide the file drag and drop box
     $('#logListContainer').prop('hidden', false); // unhide the table section
     $('#logList').css('display','table');          // unhide the data table
-  
+
 }
 
 // Update Onscreen - Number of records
-function displayListItemsCounts(){    
+function displayListItemsCounts(){
     list.matchingItems.length ? $('#noRecords').prop('hidden', true) : $('#noRecords').prop('hidden', false);
     $('#listItemsCountFiltered').html(list.matchingItems.length);
     $('#listItemsCountVisible').html(list.visibleItems.length);
@@ -510,13 +510,13 @@ function prevNextButtons(){
         $(".pagination-next").prop('hidden', true);
     }
     // Middle Page(s)
-    else { 
+    else {
         $(".pagination-prev").prop('hidden', false);
         $(".pagination-next").prop('hidden', false);
     }
 
     // Hide pagination if there one or less pages to show
-    if (list.matchingItems.length <= list.page) { 
+    if (list.matchingItems.length <= list.page) {
         $(".pagination-container").hide();
     } else {
         $(".pagination-container").show();
@@ -554,17 +554,17 @@ function debounce(func, delay) {
 function updateListAfterFilterBoxChange() {
 
     // Search all List Items (records) anf if a match is found in any column, count the record once
-    var count = 0;    
+    var count = 0;
     var listLength = list.items.length;
-    for (var i = 0;  i < listLength; i++) {    
+    for (var i = 0;  i < listLength; i++) {
         if (
             (list.filtered && list.searched && list.items[i].found && list.items[i].filtered) ||
             (list.filtered && !list.searched && list.items[i].filtered) ||
             (!list.filtered && list.searched && list.items[i].found) ||
             (!list.filtered && !list.searched)
         )
-        {      
-            // Increment the filtered records counter  
+        {
+            // Increment the filtered records counter
             count++;
         }
     }
@@ -584,51 +584,51 @@ function buildGlobalChart()
     $('#globalChartTimeScale').on('change', function(){
         buildGlobalChart();
     });
-    
+
     // Create Chart the correct for the 'Group By' (Drop Down) data type selection
     switch ($('#globalChartTimeScale').val()) {
         case 'aggregatedWeekdays':
             createAggregatedWeekdaysChart(
                 logAsDataRecords,
                 'globalChart',
-                $('#globalChart'),                            
-                $('#globalChartRecordCount')               
+                $('#globalChart'),
+                $('#globalChartRecordCount')
             );
             break;
         case 'aggregatedWeekdayHours':
             createAggregatedWeekdayHoursChart(
                 logAsDataRecords,
                 'globalChart',
-                $('#globalChart'),                            
-                $('#globalChartRecordCount')               
+                $('#globalChart'),
+                $('#globalChartRecordCount')
             );
             break;
         case 'aggregatedDays':
             createAggregatedDaysChart(
                 logAsDataRecords,
                 'globalChart',
-                $('#globalChart'),                            
-                $('#globalChartRecordCount')               
+                $('#globalChart'),
+                $('#globalChartRecordCount')
             );
             break;
         case 'aggregatedHours':
             createAggregatedHoursChart(
                 logAsDataRecords,
                 'globalChart',
-                $('#globalChart'),                            
-                $('#globalChartRecordCount')               
+                $('#globalChart'),
+                $('#globalChartRecordCount')
             );
             break;
-        default:      
+        default:
             createStandardChart(
                 logAsDataRecords,
                 logAsDataFirstDateObj,
                 logAsDataLastDateObj,
                 'globalChart',
                 $('#globalChart'),
-                $('#globalChartTimeScale'),                
-                $('#globalChartRecordCount')           
-            );            
+                $('#globalChartTimeScale'),
+                $('#globalChartRecordCount')
+            );
     }
 
 };
@@ -655,7 +655,7 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
         var medianPoint = activePoints[Math.floor(activePoints.length/2)];
 
         // If no median point is found, exit chart creation
-        if(!medianPoint) { return; }  
+        if(!medianPoint) { return; }
 
         // Get the median index, which we will use for the source segment's index
         var index = medianPoint.index;
@@ -666,7 +666,7 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
 
         //// Filter Data ////
 
-        
+
         // Determine whether it's the "start date" (first click) or the "end date" (second click).
         wcFilteringCriteria.even = (wcFilteringCriteria.even + 1) % 2;
 
@@ -677,9 +677,9 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
             wcFilteringCriteria.start = sourceTimeScaleSegment;
 
             // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
-            $('#filterStart').text(wcFilteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, '')); 
-            $('#filterEnd').text(''); 
-        
+            $('#filterStart').text(wcFilteringCriteria.start.startingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));
+            $('#filterEnd').text('');
+
         // On the second click, set the end of the date range (working chart)
         } else {
 
@@ -690,7 +690,7 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
             else { wcFilteringCriteria.end = sourceTimeScaleSegment;}
 
             // Update Onscreen - The end date below the working chart (YYYY-MM-DDTHH:mm:ss)
-            $('#filterEnd').text(wcFilteringCriteria.end.endingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));  
+            $('#filterEnd').text(wcFilteringCriteria.end.endingDate.toISOString().replace('T', ' ').replace(/\..*$/, ''));
         }
 
         // Filter the data by specified criteria (start or end segment date), if not, just copy logAsDataRecords into filteredData
@@ -726,9 +726,9 @@ function buildWorkingChart(evt = null, firstDate = null, lastDate = null, chartI
         filteredData,
         wcFilteringCriteria.start ? wcFilteringCriteria.start.startingDate : firstDate,
         wcFilteringCriteria.end ? wcFilteringCriteria.end.endingDate : lastDate,
-        'workingChart',        
+        'workingChart',
         $('#workingChart'),
-        $('#workingChartTimeScale'),        
+        $('#workingChartTimeScale'),
         $('#workingChartRecordCount')
     );
 
@@ -743,26 +743,26 @@ function createStandardChart(
     lastDate,
     chartIdentifier,
     $chartCanvas,
-    $timeScaleSelector,    
-    $queryCountContainer    
+    $timeScaleSelector,
+    $queryCountContainer
 )
-{   
+{
     // Return X-AXIS time segment specifications (Length in milliseconds / Label Format via a function)
-    //   _.padStart() = is adding in a "0" when minute/hour/day/week only has 1 character    
+    //   _.padStart() = is adding in a "0" when minute/hour/day/week only has 1 character
     //   numberOfMillis = number of millieseconds in this segment type
     //   format = A stored function that returns a date text string, from the supplied date, for this segment type. Is used for labels on the X_AXIS.
     var timeScaleSpecification = {
 
         month: {//YYYY-MM-DDTHH:mm:ss.sssZ
             numberOfMillis: 1000*60*60*24*7*4,   // 4 Weeks / 28 Days
-            //format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0"); }            
+            //format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0"); }
             format: function(date){ return date.toISOString().replace('T', ' ').replace(/-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/, ''); } // (YYYY-MM)
         },
         week: {
             numberOfMillis: 1000*60*60*24*7,
             //format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0"); }
             format: function(date){ return date.toISOString().replace('T', ' ').replace(/ [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/, ''); } // (YYYY-MM-DD)
-        },        
+        },
         day: {
             numberOfMillis: 1000*60*60*24,
             //format: function(date){ return _.padStart(date.getUTCDate(), 2, "0") + "/" + _.padStart(date.getUTCMonth() + 1, 2, "0"); }
@@ -782,7 +782,7 @@ function createStandardChart(
 
     // Sets the segment type based on the users dropdown selection
     var currentTimeScale = timeScaleSpecification[$timeScaleSelector.val()];
-    
+
     // X-AXIS Segements - Create an array which holds all of the calculated time segements, their start time, end time, X-AXIS label and test functions
     var timeScaleSegments = _(
 
@@ -803,7 +803,7 @@ function createStandardChart(
             //      The number of milliseconds might not exactly intersect the boundry of a segment leading to decimals.
             //      Ensures we use the timestamp at the start of the segement leading to correctly addressing the segements at their start point.
             Math.floor((firstDate.getTime())/(currentTimeScale.numberOfMillis)),
-            
+
             // math.floor() is not needed because: the beginning of the segment is always included and _.range() only returns integers
             (lastDate.getTime())/(currentTimeScale.numberOfMillis)
 
@@ -811,9 +811,9 @@ function createStandardChart(
 
         // This takes the range array from above [20194, 20195, 20196], runs all of the values them all through the function specified, and creates a new array.
         // .map()
-        //      creates a new array, of this data 
-        //      (index, itemsIndex, items) are special variables    
-        .map(                        
+        //      creates a new array, of this data
+        //      (index, itemsIndex, items) are special variables
+        .map(
             function(index, itemsIndex, items){
 
                 // Convert this segement's number back into timestamp and then a date object
@@ -828,8 +828,8 @@ function createStandardChart(
                     // Segement Values
                     startingDate: new Date(index * currentTimeScale.numberOfMillis),        // Date Object - Segment start time
                     endingDate: new Date((index + 1) * currentTimeScale.numberOfMillis),    // Date Object - Next segment start time
-                    labels: currentTimeScale.format(startingDate),                          // Get the date formmatted correctly for this segment type                            
-                    
+                    labels: currentTimeScale.format(startingDate),                          // Get the date formmatted correctly for this segment type
+
                     // Segment Test functions - used to check against dates to discover if they belong in this segement etc...
                     matchesWithLowBound: function(date) { return date.getTime() >= startingDate.getTime(); },                   // Returns function: Returns Boolean, getTime() returns timestamps, is the supplied date after (or including) the segement's starting time
                     matchesWithHighBound: function(date) { return date.getTime() < endingDate.getTime(); },                     // Returns function: Returns Boolean, getTime() returns timestamps, is the supplied date before the segements' end time
@@ -843,7 +843,7 @@ function createStandardChart(
         .value();
 
     // Group records by time segment: copy`data` into new array, add segment index to records, then group records by index (timeScaleRange) (returns object)
-    let recordsGroupedByTimeSegment = 
+    let recordsGroupedByTimeSegment =
 
         // Loop through all `data` records running the function() on each of them. (Returns a new array)
         _(data).map(function(data){
@@ -854,8 +854,8 @@ function createStandardChart(
                     // Find the X-AXIS time segment the current `data` record belongs to.
                     // Loop through `timeScaleSegments` (X-AXIS time segments), testing with the function() to see if the current `data` record's date is within that segment.
                     // When the first match is found, _.findIndex() will return the array index value (segment number)
-                    timeScaleIndex: _.findIndex(timeScaleSegments, function(index, itemsIndex, items){ 
-                        
+                    timeScaleIndex: _.findIndex(timeScaleSegments, function(index, itemsIndex, items){
+
                         // Is the current `data` record's date within this time segment
                         return index.matchesWith(data.dateObj);
                     })
@@ -864,7 +864,7 @@ function createStandardChart(
             );
 
         })
-    
+
         // This groups by 'timeScaleIndex'
         .groupBy('timeScaleIndex')
 
@@ -873,7 +873,7 @@ function createStandardChart(
 
     // Build an array of record counts against time segment (only segments with records will get a key/pair value, i.e. some indexes will be missing)
     var recordCountsAgainstTimeScaleIndex = _(recordsGroupedByTimeSegment).mapValues('length').value();
-    
+
     // Build an array of record counts against all time segments - Using `timeScaleSegments` as an index, create a new array, mapping the record counts against time segment.
     var chartDatasetData = _(timeScaleSegments).map(function(timeScaleRange, timeScaleIndex){ return recordCountsAgainstTimeScaleIndex[timeScaleIndex] || 0; }).value();
 
@@ -882,7 +882,7 @@ function createStandardChart(
 
     // If the chart already exists, destroy it using the dynamically created chart identifier (chart.js)
     if(displayedCharts[chartIdentifier]){ displayedCharts[chartIdentifier].chartObj.destroy(); }
-    
+
     // Instanciate Chart Class
     var chart = new Chart(ctx, {
         type: 'bar',
@@ -924,25 +924,25 @@ function createStandardChart(
                         //stepSize: 1,                  // Customize tick intervals
                         //color: 'blue',                // Change tick color
                         autoSkip: true,                 // Automatically calculates how many labels can be shown. This also hides the last label (or skipped from callback)
-                                                        // https://github.com/chartjs/Chart.js/issues/6154 - Chartjs v2.8 removes latest label on line chart 
+                                                        // https://github.com/chartjs/Chart.js/issues/6154 - Chartjs v2.8 removes latest label on line chart
                                                         // https://github.com/chartjs/Chart.js/pull/5891 - Remove autoSkip logic to always display last tick
                         callback: function(value, index, ticks) {
 
-                            // Maximum number of labels to be displayed on the X-AXIS   
-                            let maxDisplayedLabels = 15;                           
+                            // Maximum number of labels to be displayed on the X-AXIS
+                            let maxDisplayedLabels = 15;
 
                             // Show X-AXIS labels, display logic
                             return (
-                                
+
                                 // If the total number of items (time segments) is less than or equal to the label limit (maxDisplayedLabels), then show all labels.
                                 ticks.length <= maxDisplayedLabels ||
 
                                 // Always show the first label (might not be needed)
-                                index === 0 ||                          
+                                index === 0 ||
 
                                 // Always show the last label (requires `autoSkip: false`)
                                 //index === (ticks.length - 1) ||
-                                
+
                                 // If the total number of items (time segments) is more than the label limit (maxDisplayedLabels), this line distributes the labels evenly (upto the max number of labels)
                                 //  Math.round(items.length / maxDisplayedLabels): Determines a "step size" — how often to display a label.
                                 //  index % stepSize === 0: Only display labels at these regular intervals.
@@ -982,7 +982,7 @@ function createStandardChart(
     displayedCharts[chartIdentifier] = {
         chartObj: chart,
         timeScaleSegments: timeScaleSegments
-    }    
+    }
 
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html(data.length);
@@ -990,8 +990,8 @@ function createStandardChart(
     // Creates click event on the chart - creates/updates the working chart
     $chartCanvas.on('click', function(evt) { buildWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
 
-    // Display/Hide sections as needed    
-    $('#globalChartContainer').prop('hidden', false);    
+    // Display/Hide sections as needed
+    $('#globalChartContainer').prop('hidden', false);
     $('#logListContainer').prop('hidden', false);
 
 }
@@ -1000,8 +1000,8 @@ function createStandardChart(
 function createAggregatedWeekdaysChart(
     data,
     chartIdentifier,
-    $chartCanvas,  
-    $queryCountContainer    
+    $chartCanvas,
+    $queryCountContainer
 )
 {
     // Build an array of time segments (Weekday, Mon-Sun) with, a count of records per time segment
@@ -1079,7 +1079,7 @@ function createAggregatedWeekdaysChart(
     displayedCharts[chartIdentifier] = {
         chartObj: chart,
         timeScaleSegments: timeScaleSegments
-    } 
+    }
 
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html(data.length);
@@ -1095,8 +1095,8 @@ function createAggregatedWeekdaysChart(
 function createAggregatedWeekdayHoursChart(
     data,
     chartIdentifier,
-    $chartCanvas,  
-    $queryCountContainer    
+    $chartCanvas,
+    $queryCountContainer
 )
 {
     // Build an array of time segments (Day) with, a count of records per time segment
@@ -1110,7 +1110,7 @@ function createAggregatedWeekdayHoursChart(
     chartDatasetData.thursday = convertSunSatToMonSun(aggregatedData.weekdayHours[4]);
     chartDatasetData.friday = convertSunSatToMonSun(aggregatedData.weekdayHours[5]);
     chartDatasetData.saturday = convertSunSatToMonSun(aggregatedData.weekdayHours[6]);
-    chartDatasetData.sunday = convertSunSatToMonSun(aggregatedData.weekdayHours[0]);     
+    chartDatasetData.sunday = convertSunSatToMonSun(aggregatedData.weekdayHours[0]);
 
      // 2D rendering context of the canvas, taken from the Reference to the canvas element [e,g. `$chartCanvas` --> `$('#globalChart')`]
     var ctx = $chartCanvas.get(0).getContext("2d");
@@ -1251,7 +1251,7 @@ function createAggregatedWeekdayHoursChart(
     displayedCharts[chartIdentifier] = {
         chartObj: chart,
         timeScaleSegments: timeScaleSegments
-    } 
+    }
 
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html(data.length);
@@ -1267,8 +1267,8 @@ function createAggregatedWeekdayHoursChart(
 function createAggregatedDaysChart(
     data,
     chartIdentifier,
-    $chartCanvas,  
-    $queryCountContainer    
+    $chartCanvas,
+    $queryCountContainer
 )
 {
     // Build an array of time segments (Day) with, a count of records per time segment - first element is not used so is removed.
@@ -1346,7 +1346,7 @@ function createAggregatedDaysChart(
     displayedCharts[chartIdentifier] = {
         chartObj: chart,
         timeScaleSegments: timeScaleSegments
-    } 
+    }
 
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html(data.length);
@@ -1362,8 +1362,8 @@ function createAggregatedDaysChart(
 function createAggregatedHoursChart(
     data,
     chartIdentifier,
-    $chartCanvas,  
-    $queryCountContainer    
+    $chartCanvas,
+    $queryCountContainer
 )
 {
     // Build an array of time segments (Day) with, a count of records per time segment
@@ -1441,7 +1441,7 @@ function createAggregatedHoursChart(
     displayedCharts[chartIdentifier] = {
         chartObj: chart,
         timeScaleSegments: timeScaleSegments
-    } 
+    }
 
     // Update Onscreen -  the current number of queries being displayed
     $queryCountContainer.html(data.length);
@@ -1465,20 +1465,20 @@ function convertSunSatToMonSun(dayArray){
 
 
 // Reset page without having to refresh and reload log file
-function resetPage() {    
-    
-    // Restore all records to the list  
+function resetPage() {
+
+    // Restore all records to the list
     filteredData = null;
     list.clear();
     list.add(logAsDataRecords);
     //list.search(''); // Forces the list to re-render
     //list.update(); // Recalculates pagination if items were added/removed
     //list.show(1);  // Show first page
-    
+
     // Update Onscreen - Reconfigure Visible assets
-    $('#globalChartTimeScale').val('hour'); 
+    $('#globalChartTimeScale').val('hour');
     $('#workingChartTimeScale').val('hour');
-    $('#workingChartContainer').css('display', 'none');    
+    $('#workingChartContainer').css('display', 'none');
     $('#logListContainer').prop('hidden', false);
     $('#filterStart').text('');
     $('#filterEnd').text('');
