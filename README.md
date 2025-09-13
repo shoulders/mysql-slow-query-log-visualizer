@@ -34,7 +34,7 @@ Use this app online, no installation needed: <https://shoulders.github.io/mysql-
   - If you choose an end date that is before your start date, then your start date will be used for both values.
   - If you double click a bar it will show only the results of that segment in the working chart.
   - While choosing your start time and end time, you can use mix and match using both charts to choose those times.
-- Anaylyse the fitlered results further by using the search and sort by options available in the table of queries.
+- Analyse the fitlered results further by using the search and sort by options available in the table of queries.
   - The Tables column headings allow you to sort by acending or descending
   - The queries in the table can be further filtered by using the **Filter** input box. This will not change the results shown in the Working Chart.
   - The queries in the table will always reflect the results in the Working Chart unless you have just intitally loaded the page.
