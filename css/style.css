@@ -1,3 +1,5 @@
+/** General **/
+
 html
 {
     margin: 20px;
@@ -21,10 +23,27 @@ a:hover
     color: #9cf;
 }
 
-li
+/** Header **/
+
+#githubLink
 {
-    list-style-type: none;
+  float:right;
+  text-align: right;
 }
+#githubLink img
+{
+  width: 25px;
+}
+
+/** Footer **/
+
+#footer
+{
+  text-align: center;
+  color: #999;
+}
+
+/** Drop Zone **/
 
 #dropZone
 {
@@ -33,49 +52,45 @@ li
     padding: 80px 0;
 }
 
-/*
-#drop_result
+/** Information Blocks **/
+
+.information-block li
 {
-    display: block;
+    list-style-type: none;  /* this is needed */
+}
+.information-block .item-title
+{
+    color: #ffec00;
+}
+.information-block .item-subtitle
+{
+    color: #ff9100;
 }
 
-#load_result
+#globalChartContainer #resetFilter
 {
-    display: block;
-    color: #ffec00;
-    margin-bottom: 20px;
+  margin-top: 10px;
 }
-    */
+
+/** Chart Styling **/
 
 .chart-container
 {
     margin: auto;
-    max-height: 400px;
-    margin-bottom: 40px;
+    margin-bottom: 8vw;
+    /*max-width: 960px;*/
+    max-height: 480px;
 }
 
 .chart {
     text-align: left;
-    width: 1280px;
-    height: 600px;
-
 }
 
-#search th
-{
-    text-align: right;
-}
+/** List **/
 
-/*
-#search_count
-{
-    color: #ffec00;
-    font-weight: normal;
-    padding-right: 10px;
-}
-    */
+/* List - Table */
 
-table
+#logList
 {
     table-layout: fixed;
     width: 100%;
@@ -83,17 +98,17 @@ table
     border: 1px solid #ccc
 }
 
-thead th
+#logList thead th
 {
     cursor: s-resize;
 }
 
-th
+#logList th
 {
     text-align: left;
 }
 
-tfoot
+#logList tfoot
 {
     /*display: none;*/
 }
@@ -103,7 +118,7 @@ tfoot
     overflow: hidden;
 }
 
-pre
+#logList pre
 {
     white-space: normal;
     color: #9cf;
@@ -111,31 +126,25 @@ pre
     line-height: 16px;
 }
 
-p.credits
-{
-    text-align: center;
-    color: #999;
-}
+/* List - Search */
 
-/** Mine **/
-
-.list-search
+#logList .list-search
 {
   /* TODO: do i need this - check html - naybw a div  */
 }
 
-.log-information-title
+#logList #search th
 {
-    color: #ffec00;
+    text-align: right;
 }
 
-/* list - Sort Icon */
+/* List - Sort Icon */
 
-th.sort p {
+#logList th.sort p {
   float: left;
 }
 
-.sort-icon {
+#logList .sort-icon {
       margin-left: 5px;
       padding-right: 20px;
       font-size: 12px;
@@ -143,47 +152,46 @@ th.sort p {
       height: 8px;
       color: yellow;
       float: right;
-    }
-.sort-icon::before {
+}
+#logList .sort-icon::before {
   content: "▲"; /* starting block */
   float: right;
 }
-.sort-icon::after {
+#logList .sort-icon::after {
   content: "▼"; /* starting block */
   float: right;
 }
-th.asc .sort-icon::before, /* Change colour for active */
-th.desc .sort-icon::after {
+#logList th.asc .sort-icon::before, /* Change colour for active */
+#logList th.desc .sort-icon::after {
   color: green;
 }
 
-/* list - Pagination */
+/* List - Pagination */
 
-.pagination-container {
+#logList .pagination-container {
   text-decoration: none;
   display: flex;            /* Makes list items align horizontally */
   justify-content: center;  /* Centers the entire pagination */
   align-items: center;      /* Vertically aligns the entire pagination */
 }
 
-.pagination-container a {
+#logList .pagination-container a {
   text-decoration: none;
 }
 
-.prevnext-button {
+#logList .prevnext-button {
   padding:5px;
 }
 
-ul.pagination {
+#logList ul.pagination {
   padding-inline-start: unset;
 }
 
-.pagination li {
+#logList .pagination li {
   display:inline-block;
   padding:5px;
 }
 
-.pagination li.active a.page {
+#logList .pagination li.active a.page {
   color: red;
 }
-

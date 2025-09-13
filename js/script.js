@@ -907,13 +907,18 @@ function createStandardChart(
                     display: false                      // Hide the dataset label
                 }
             },
+            layout: {
+                margin: {
+                    bottom: 200
+                },
+            },
             pointHitDetectionRadius: 1,
             scales: {
                 // X-AXIS configuration
                 x: {
                     title: {
                         display: true,
-                        text: 'Time of Request'         // Label for the x-axis
+                        text: 'Time of Query'           // Label for the x-axis
                     },
                     ticks: {
                         //stepSize: 1,                  // Customize tick intervals
@@ -959,7 +964,7 @@ function createStandardChart(
                     beginAtZero: true,                      // Start the axis at zero
                     title: {
                         display: true,
-                        text: 'Requests'                    // Label for the y-axis
+                        text: 'Number of Queries'           // Label for the y-axis
                     },
                     ticks: {
                         stepSize: 1,                        // Ensure integers
@@ -980,7 +985,7 @@ function createStandardChart(
     }    
 
     // Update Onscreen -  the current number of queries being displayed
-    $queryCountContainer.html("Displaying " + data.length + " queries");
+    $queryCountContainer.html(data.length);
 
     // Creates click event on the chart - creates/updates the working chart
     $chartCanvas.on('click', function(evt) { buildWorkingChart(evt, firstDate, lastDate, chartIdentifier); });
@@ -1041,7 +1046,7 @@ function createAggregatedWeekdaysChart(
                 x: {
                     title: {
                         display: true,
-                        text: 'Day of Request'          // Label for the x-axis
+                        text: 'Weekday'                        // Label for the x-axis
                     },
                     ticks: {
                         //stepSize: 1,                  // Customize tick intervals
@@ -1056,7 +1061,7 @@ function createAggregatedWeekdaysChart(
                     beginAtZero: true,                      // Start the axis at zero
                     title: {
                         display: true,
-                        text: 'Requests'                    // Label for the y-axis
+                        text: 'Number of Queries'           // Label for the y-axis
                     },
                     ticks: {
                         stepSize: 1,                        // Ensure integers
@@ -1077,7 +1082,7 @@ function createAggregatedWeekdaysChart(
     } 
 
     // Update Onscreen -  the current number of queries being displayed
-    $queryCountContainer.html("Displaying " + data.length + " queries");
+    $queryCountContainer.html(data.length);
 
     // Display/Hide sections as needed
     $('#globalChartContainer').prop('hidden', false);
@@ -1213,7 +1218,7 @@ function createAggregatedWeekdayHoursChart(
                 x: {
                     title: {
                         display: true,
-                        text: 'Hour of Request'         // Label for the x-axis
+                        text: 'Hour'                    // Label for the x-axis
                     },
                     ticks: {
                         //stepSize: 1,                  // Customize tick intervals
@@ -1228,7 +1233,7 @@ function createAggregatedWeekdayHoursChart(
                     beginAtZero: true,                      // Start the axis at zero
                     title: {
                         display: true,
-                        text: 'Requests'                    // Label for the y-axis
+                        text: 'Number of Queries'           // Label for the y-axis
                     },
                     ticks: {
                         stepSize: 1,                        // Ensure integers
@@ -1249,7 +1254,7 @@ function createAggregatedWeekdayHoursChart(
     } 
 
     // Update Onscreen -  the current number of queries being displayed
-    $queryCountContainer.html("Displaying " + data.length + " queries");
+    $queryCountContainer.html(data.length);
 
     // Display/Hide sections as needed
     $('#globalChartContainer').prop('hidden', false);
@@ -1308,7 +1313,7 @@ function createAggregatedDaysChart(
                 x: {
                     title: {
                         display: true,
-                        text: 'Day of Request'          // Label for the x-axis
+                        text: 'Day'                     // Label for the x-axis
                     },
                     ticks: {
                         //stepSize: 1,                  // Customize tick intervals
@@ -1320,14 +1325,14 @@ function createAggregatedDaysChart(
                 },
                 // Y-AXIS configuration
                 y: {
-                    beginAtZero: true,                      // Start the axis at zero
+                beginAtZero: true,                      // Start the axis at zero
                     title: {
                         display: true,
-                        text: 'Requests'                    // Label for the y-axis
+                        text: 'Number of Queries'       // Label for the y-axis
                     },
                     ticks: {
-                        stepSize: 1,                        // Ensure integers
-                        //color: 'blue'                     // Change tick color
+                        stepSize: 1,                    // Ensure integers
+                        //color: 'blue'                 // Change tick color
                     },
                     /*grid: {
                         color: 'rgba(200, 200, 200, 0.5)' // Customize grid line color
@@ -1344,7 +1349,7 @@ function createAggregatedDaysChart(
     } 
 
     // Update Onscreen -  the current number of queries being displayed
-    $queryCountContainer.html("Displaying " + data.length + " queries");
+    $queryCountContainer.html(data.length);
 
     // Display/Hide sections as needed
     $('#globalChartContainer').prop('hidden', false);
@@ -1403,7 +1408,7 @@ function createAggregatedHoursChart(
                 x: {
                     title: {
                         display: true,
-                        text: 'Hour of Request'         // Label for the x-axis
+                        text: 'Hour'                    // Label for the x-axis
                     },
                     ticks: {
                         //stepSize: 1,                  // Customize tick intervals
@@ -1418,7 +1423,7 @@ function createAggregatedHoursChart(
                     beginAtZero: true,                      // Start the axis at zero
                     title: {
                         display: true,
-                        text: 'Requests'                    // Label for the y-axis
+                        text: 'Number of Queries'           // Label for the y-axis
                     },
                     ticks: {
                         stepSize: 1,                        // Ensure integers
@@ -1439,7 +1444,7 @@ function createAggregatedHoursChart(
     } 
 
     // Update Onscreen -  the current number of queries being displayed
-    $queryCountContainer.html("Displaying " + data.length + " queries");
+    $queryCountContainer.html(data.length);
 
     // Display/Hide sections as needed
     $('#globalChartContainer').prop('hidden', false);
