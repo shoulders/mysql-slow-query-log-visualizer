@@ -8,7 +8,7 @@ body
 {
     background-color: #123;
     color: #eee;
-    font-family: Monaco, "Lucida Console";
+    font-family: Monaco, "Lucida Console", sans-serif;
     font-size: 10px;
 }
 
@@ -98,19 +98,14 @@ a:hover
     border: 1px solid #ccc
 }
 
-#logList thead th
-{
-    cursor: s-resize;
-}
-
 #logList th
 {
     text-align: left;
 }
 
-#logList tfoot
+#logList thead th
 {
-    /*display: none;*/
+    cursor: s-resize;
 }
 
 #logList td.qs
@@ -127,11 +122,6 @@ a:hover
 }
 
 /* List - Search */
-
-#logList .list-search
-{
-  /* TODO: do i need this - check html - naybw a div  */
-}
 
 #logList #search th
 {

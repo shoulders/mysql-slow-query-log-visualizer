@@ -4,7 +4,7 @@ This tool will help you find SQL queries that are taking to long to complete whi
 
 ## Use Online
 
-Use this app online, no installation needed: https://shoulders.github.io/mysql-slow-query-log-visualizer/
+Use this app online, no installation needed: <https://shoulders.github.io/mysql-slow-query-log-visualizer/>
 
 ## Privacy Information
 
